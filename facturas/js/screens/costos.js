@@ -164,32 +164,44 @@ const COSTOS = {
     const file = input.files[0];
     if (!file) return;
     const status = document.getElementById('loggro-status');
-    status.textContent = 'Analizando archivo con IA...';
+    status.textContent = 'Leyendo archivo...';
     status.style.color = 'var(--gold)';
     try {
-      const base64 = await new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = e => res(e.target.result.split(',')[1]);
-        r.onerror = rej;
-        r.readAsDataURL(file);
-      });
-      const mime = file.type || 'application/octet-stream';
-      const key = await API._getGeminiKey();
-      const prompt = `Este es un reporte/export de ventas del POS Loggro (pirpos.com). Extrae el TOTAL DE VENTAS del período. Devuelve SOLO un número entero en pesos colombianos (sin puntos ni comas ni símbolos). Ejemplo: 4850000`;
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: base64 } }] }] })
-      });
-      const data = await res.json();
-      const text = (data?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
-      const num = parseInt(text.replace(/\D/g, ''), 10);
-      if (!num) throw new Error('No se encontró total en el archivo');
-      document.getElementById('costo-ventas_loggro').value = num;
-      status.textContent = `✓ Total extraído: ${ENGINE.formatCOPFull(num)} — guarda para confirmar`;
+      const isExcel = /xlsx?$|csv$/i.test(file.name);
+      let total = 0;
+
+      if (isExcel && typeof XLSX !== 'undefined') {
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws);
+        // Suma todos los valores numéricos de la segunda columna
+        total = rows.reduce((s, r) => {
+          const vals = Object.values(r);
+          const v = vals.length > 1 ? vals[vals.length - 1] : vals[0];
+          return s + Number(String(v).replace(/[^0-9.]/g, '') || 0);
+        }, 0);
+      } else {
+        // PDF o imagen → Gemini
+        status.textContent = 'Analizando con IA...';
+        const base64 = await new Promise((res, rej) => {
+          const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file);
+        });
+        const key = await API._getGeminiKey();
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Reporte de ventas Loggro. Extrae el TOTAL DE VENTAS. Responde SOLO el número entero sin símbolos. Ejemplo: 4850000' }, { inline_data: { mime_type: file.type, data: base64 } }] }] })
+        });
+        const data = await res.json();
+        total = parseInt((data?.candidates?.[0]?.content?.parts?.[0]?.text || '').replace(/\D/g, ''), 10);
+      }
+
+      if (!total) throw new Error('No se encontró total en el archivo');
+      document.getElementById('costo-ventas_loggro').value = total;
+      status.textContent = `✓ ${ENGINE.formatCOPFull(total)} — presiona GUARDAR para confirmar`;
       status.style.color = 'var(--ok)';
     } catch(e) {
-      status.textContent = '✗ ' + e.message + ' — ingresa el total manualmente';
+      status.textContent = '✗ ' + e.message;
       status.style.color = 'var(--fire)';
     }
   },
