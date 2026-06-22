@@ -49,6 +49,62 @@
 
 <div id="toast"></div>
 
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">TOMA</div>
+    <div class="login-sub">Facturas & Costos</div>
+    <form id="login-form">
+      <div class="login-field">
+        <label>Usuario</label>
+        <input id="login-user" type="text" autocomplete="username" placeholder="admin / operario" required>
+      </div>
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input id="login-pass" type="password" autocomplete="current-password" required>
+      </div>
+      <div id="login-error"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px">INGRESAR</button>
+    </form>
+  </div>
+</div>
+
+<style>
+#login-overlay {
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(10,10,10,.97);
+  align-items:center;justify-content:center;
+}
+#login-overlay.visible { display:flex; }
+.login-box {
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:40px 32px;width:100%;max-width:340px;
+}
+.login-logo {
+  font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--fire);
+  letter-spacing:.1em;text-align:center;margin-bottom:4px;
+}
+.login-sub {
+  font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--steel);
+  letter-spacing:2px;text-align:center;text-transform:uppercase;margin-bottom:28px;
+}
+.login-field { margin-bottom:14px; }
+.login-field label {
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:8px;
+  color:var(--steel);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;
+}
+.login-field input {
+  width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:10px 12px;color:var(--bone);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;box-sizing:border-box;
+}
+.login-field input:focus { outline:none;border-color:var(--fire); }
+#login-error {
+  font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--fire);
+  min-height:16px;margin-bottom:4px;text-align:center;
+}
+</style>
+
 <script src="js/config.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/api.js"></script>
@@ -57,6 +113,7 @@
 <script src="js/screens/historial.js"></script>
 <script src="js/screens/recetas.js"></script>
 <script src="js/screens/costos.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/router.js"></script>
 <script src="js/app.js"></script>
 </body>
