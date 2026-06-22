@@ -1,5 +1,15 @@
 // js/api.js
 const API = {
+  _geminiKey: null,
+
+  async _getGeminiKey() {
+    if (API._geminiKey) return API._geminiKey;
+    const cfg = await API.get('getConfig');
+    if (!cfg.gemini_key) throw new Error('Gemini key no configurada en Apps Script');
+    API._geminiKey = cfg.gemini_key;
+    return API._geminiKey;
+  },
+
   async get(action, params = {}) {
     const url = new URL(CONFIG.APPS_SCRIPT_URL);
     url.searchParams.set('action', action);
@@ -19,6 +29,7 @@ const API = {
   },
 
   async scanWithGemini(imageBase64, mimeType = 'image/jpeg') {
+    const key = await API._getGeminiKey();
     const prompt = `Eres un asistente que extrae datos de facturas de proveedores de restaurante.
 Analiza esta imagen y devuelve SOLO un JSON con este formato exacto:
 {
@@ -32,7 +43,7 @@ Analiza esta imagen y devuelve SOLO un JSON con este formato exacto:
 Si no puedes leer algún campo usa null. No incluyas texto fuera del JSON.`;
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.GEMINI_MODEL}:generateContent?key=${CONFIG.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
