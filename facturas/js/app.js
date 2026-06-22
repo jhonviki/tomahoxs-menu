@@ -26,6 +26,12 @@ const APP = {
   },
 
   async init() {
+    AUTH.init();
+    if (!AUTH.get()) {
+      AUTH.showLogin();
+      return;
+    }
+    AUTH.renderSidebar();
     ROUTER.init();
     const hash = location.hash.slice(1) || 'dashboard';
     ROUTER.navigate(hash);
