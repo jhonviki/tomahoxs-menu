@@ -15,6 +15,10 @@ const ROUTER = {
 
   navigate(screen) {
     if (!this.screens.includes(screen)) screen = 'dashboard';
+    if (!AUTH.canAccess(screen)) {
+      const allowed = CONFIG.ROLE_SCREENS[(AUTH.get() || {}).role] || [];
+      screen = allowed[0] || 'scan';
+    }
     if (screen === this.current) return;
     this.current = screen;
 
