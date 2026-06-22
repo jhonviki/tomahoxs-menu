@@ -119,15 +119,6 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--dark);color:var
   <div class="pin-error" id="pin-error"></div>
 </div>
 
-<!-- TOKEN SCREEN -->
-<div id="token-screen" class="hidden">
-  <div class="token-card">
-    <div class="token-title">Token de GitHub</div>
-    <div class="token-desc">Solo se pide una vez. Lo encontrás en <strong>.env</strong> como <code>GH_TOKEN</code>. Se guarda en este dispositivo.</div>
-    <input type="password" class="token-input" id="token-input" placeholder="ghp_..." autocomplete="off">
-    <button class="btn-primary" onclick="saveToken()">Guardar y continuar</button>
-  </div>
-</div>
 
 <!-- MAIN -->
 <div id="main">
@@ -145,8 +136,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--dark);color:var
 
 <script>
 const PIN = '2121';
-const GH_OWNER = 'jhonviki';
-const GH_REPO  = 'tomahoxs-menu';
+const UPLOAD_URL = 'https://primary-production-74bce.up.railway.app/webhook/upload-foto-menu';
 
 const SECTIONS = [
   { label: 'Entradas', items: [
@@ -206,32 +196,14 @@ function pinClear() {
 function checkPin() {
   if (pinVal === PIN) {
     document.getElementById('pin-screen').classList.add('hidden');
-    const token = localStorage.getItem('gh_token');
-    if (!token) {
-      document.getElementById('token-screen').classList.remove('hidden');
-    } else {
-      showMain();
-    }
+    showMain();
   } else {
     document.getElementById('pin-error').textContent = 'PIN incorrecto';
     pinClear();
   }
 }
 
-// Token logic
-function saveToken() {
-  const t = document.getElementById('token-input').value.trim();
-  if (!t.startsWith('ghp_') && !t.startsWith('github_pat_')) {
-    alert('El token debe empezar con ghp_ o github_pat_');
-    return;
-  }
-  localStorage.setItem('gh_token', t);
-  document.getElementById('token-screen').classList.add('hidden');
-  showMain();
-}
-
 function logout() {
-  localStorage.removeItem('gh_token');
   location.reload();
 }
 
@@ -327,11 +299,8 @@ function resizeImage(file, maxW = 1200, q = 0.88) {
   });
 }
 
-// Upload to GitHub
+// Upload via n8n webhook (token queda server-side)
 async function handleUpload(id, file) {
-  const token = localStorage.getItem('gh_token');
-  if (!token) { showToast('Token no encontrado. Sal y vuelve a entrar.', 'err'); return; }
-
   const ov = document.getElementById('ov-' + id);
   ov.classList.remove('hidden');
   ov.innerHTML = '<div class="upload-spinner"></div><div class="upload-msg">Procesando...</div>';
@@ -340,24 +309,14 @@ async function handleUpload(id, file) {
     const b64 = await resizeImage(file);
     ov.querySelector('.upload-msg').textContent = 'Subiendo...';
 
-    const path = 'img/' + id + '.jpg';
-    const apiUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
-    const headers = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
+    const res = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: PIN, id, content: b64 })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Error desconocido');
 
-    // Get SHA if exists
-    let sha;
-    try {
-      const r = await fetch(apiUrl, { headers });
-      if (r.ok) sha = (await r.json()).sha;
-    } catch {}
-
-    const body = { message: 'foto: ' + id, content: b64, branch: 'main' };
-    if (sha) body.sha = sha;
-
-    const res = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error('GitHub ' + res.status);
-
-    // Show new image
     const url = '/img/' + id + '.jpg?v=' + Date.now();
     const img = document.getElementById('img-' + id);
     const ph  = document.getElementById('ph-' + id);
