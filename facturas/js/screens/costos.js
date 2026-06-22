@@ -1,6 +1,7 @@
 const COSTOS = {
   TARGETS: { mano_obra: 25, arriendo: 10, servicios: 5, publicidad: 5, otros: 5, cmv: 35 },
   LABELS:  { mano_obra: 'Mano de obra', arriendo: 'Arriendo', servicios: 'Servicios públicos', publicidad: 'Publicidad', otros: 'Otros', cmv: 'CMV (ingredientes)' },
+  _detalle: [],
 
   async render() {
     const el = document.getElementById('screen-costos');
@@ -17,14 +18,16 @@ const COSTOS = {
       ]);
       costos = costosData || {};
       cmvTotal = dash.total || 0;
-      if (costosData.ventas_loggro && Number(costosData.ventas_loggro) > 0) {
-        ventas = Number(costosData.ventas_loggro);
+      if (costos.ventas_loggro && Number(costos.ventas_loggro) > 0) {
+        ventas = Number(costos.ventas_loggro);
       } else {
         const pedidos = pedidosData.pedidos || [];
         ventas = pedidos
           .filter(p => (p.Fecha || '').substring(0, 7) === mes)
           .reduce((s, p) => s + Number((p.Total || '0').toString().replace(/[^0-9]/g, '') || 0), 0);
       }
+      // Restaurar detalle guardado
+      try { COSTOS._detalle = costos.ventas_detalle ? JSON.parse(costos.ventas_detalle) : []; } catch { COSTOS._detalle = []; }
     } catch(e) {
       el.innerHTML = `<div style="padding:40px;color:var(--steel);font-family:'IBM Plex Mono',monospace;font-size:11px">Error: ${e.message}</div>`;
       return;
@@ -63,16 +66,17 @@ const COSTOS = {
             <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);letter-spacing:1.5px;margin-bottom:14px">INGRESAR COSTOS DEL MES</div>
 
             <div style="margin-bottom:16px;padding:10px;background:rgba(200,169,110,.07);border:1px solid rgba(200,169,110,.2);border-radius:8px">
-              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:1.5px;margin-bottom:8px">VENTAS LOGGRO</div>
-              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-                <input id="costo-ventas_loggro" type="number" min="0" value="${costos.ventas_loggro || ''}" placeholder="0"
-                  style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(200,169,110,.3);border-radius:6px;padding:8px 10px;color:var(--bone);font-family:'IBM Plex Mono',monospace;font-size:11px;box-sizing:border-box">
-                <label class="btn btn-secondary" style="padding:8px 12px;cursor:pointer;white-space:nowrap;font-size:9px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:1.5px">VENTAS LOGGRO</div>
+                <label class="btn btn-secondary" style="padding:5px 10px;cursor:pointer;font-size:8px">
                   📂 SUBIR REPORTE
                   <input type="file" accept=".csv,.xlsx,.xls,.pdf,image/*" style="display:none" onchange="COSTOS.parsearReporte(this)">
                 </label>
               </div>
-              <div id="loggro-status" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);min-height:12px"></div>
+              <input id="costo-ventas_loggro" type="number" min="0" value="${costos.ventas_loggro || ''}" placeholder="0 — o sube el Excel de Loggro"
+                style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(200,169,110,.3);border-radius:6px;padding:8px 10px;color:var(--bone);font-family:'IBM Plex Mono',monospace;font-size:11px;box-sizing:border-box;margin-bottom:8px">
+              <div id="loggro-status" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);min-height:10px;margin-bottom:4px"></div>
+              <div id="loggro-detalle">${COSTOS._detalleHTML(COSTOS._detalle)}</div>
             </div>
 
             ${['mano_obra','arriendo','servicios','publicidad','otros'].map(k => `
@@ -92,6 +96,27 @@ const COSTOS = {
 
         </div>
       </div>`;
+  },
+
+  _detalleHTML(detalle) {
+    if (!detalle || !detalle.length) return '';
+    const total = detalle.reduce((s, r) => s + r.total, 0);
+    return `
+      <table style="width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:8px;margin-top:4px">
+        ${detalle.map(r => {
+          const pct = total ? Math.round(r.total / total * 100) : 0;
+          return `<tr style="border-top:1px solid rgba(200,169,110,.1)">
+            <td style="padding:4px 0;color:var(--bone)">${r.metodo}</td>
+            <td style="text-align:right;color:var(--steel);padding-right:8px">${pct}%</td>
+            <td style="text-align:right;color:var(--gold)">${ENGINE.formatCOPFull(r.total)}</td>
+          </tr>`;
+        }).join('')}
+        <tr style="border-top:1px solid rgba(200,169,110,.3)">
+          <td style="padding:4px 0;color:var(--bone);font-weight:700">TOTAL</td>
+          <td></td>
+          <td style="text-align:right;color:var(--gold);font-weight:700">${ENGINE.formatCOPFull(total)}</td>
+        </tr>
+      </table>`;
   },
 
   _pct(valor, ventas) {
@@ -168,37 +193,44 @@ const COSTOS = {
     status.style.color = 'var(--gold)';
     try {
       const isExcel = /xlsx?$|csv$/i.test(file.name);
-      let total = 0;
+      let filas = [];
 
       if (isExcel && typeof XLSX !== 'undefined') {
         const buf = await file.arrayBuffer();
         const wb = XLSX.read(buf, { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws);
-        // Suma todos los valores numéricos de la segunda columna
-        total = rows.reduce((s, r) => {
+        filas = rows.map(r => {
           const vals = Object.values(r);
-          const v = vals.length > 1 ? vals[vals.length - 1] : vals[0];
-          return s + Number(String(v).replace(/[^0-9.]/g, '') || 0);
-        }, 0);
+          const metodo = String(vals[0] || '').trim();
+          const total = Number(String(vals[vals.length - 1]).replace(/[^0-9.]/g, '') || 0);
+          return { metodo, total };
+        }).filter(r => r.metodo && r.total > 0);
       } else {
-        // PDF o imagen → Gemini
+        // PDF o imagen → Gemini extrae JSON
         status.textContent = 'Analizando con IA...';
         const base64 = await new Promise((res, rej) => {
           const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file);
         });
         const key = await API._getGeminiKey();
+        const prompt = 'Reporte de ventas Loggro. Extrae los métodos de pago y sus totales. Devuelve SOLO un JSON array: [{"metodo":"Efectivo","total":1234567},{"metodo":"Transferencia","total":890000}]. Sin texto adicional.';
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'Reporte de ventas Loggro. Extrae el TOTAL DE VENTAS. Responde SOLO el número entero sin símbolos. Ejemplo: 4850000' }, { inline_data: { mime_type: file.type, data: base64 } }] }] })
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: file.type, data: base64 } }] }] })
         });
         const data = await res.json();
-        total = parseInt((data?.candidates?.[0]?.content?.parts?.[0]?.text || '').replace(/\D/g, ''), 10);
+        const text = (data?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+        const match = text.match(/\[[\s\S]*\]/);
+        filas = match ? JSON.parse(match[0]) : [];
       }
 
-      if (!total) throw new Error('No se encontró total en el archivo');
+      if (!filas.length) throw new Error('No se encontraron datos en el archivo');
+
+      COSTOS._detalle = filas;
+      const total = filas.reduce((s, r) => s + r.total, 0);
       document.getElementById('costo-ventas_loggro').value = total;
-      status.textContent = `✓ ${ENGINE.formatCOPFull(total)} — presiona GUARDAR para confirmar`;
+      document.getElementById('loggro-detalle').innerHTML = COSTOS._detalleHTML(filas);
+      status.textContent = `✓ ${filas.length} métodos · Total: ${ENGINE.formatCOPFull(total)} — presiona GUARDAR`;
       status.style.color = 'var(--ok)';
     } catch(e) {
       status.textContent = '✗ ' + e.message;
@@ -211,6 +243,7 @@ const COSTOS = {
     ['ventas_loggro','mano_obra','arriendo','servicios','publicidad','otros'].forEach(k => {
       costos[k] = Number(document.getElementById('costo-' + k).value || 0);
     });
+    costos.ventas_detalle = COSTOS._detalle.length ? JSON.stringify(COSTOS._detalle) : '';
     try {
       await API.get('guardarCostos', { payload: JSON.stringify({ mes, costos }) });
       APP.toast('Costos guardados ✓');
