@@ -19,8 +19,10 @@
   .sec-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:.6rem;padding-bottom:.6rem;border-bottom:2px solid var(--red)}
   .sec-title{font-family:var(--fd);font-size:28pt;letter-spacing:.02em;color:var(--text)}
   .sec-note{font-size:8pt;color:var(--muted);font-style:italic;margin-bottom:1.2rem}
-  .item{display:flex;justify-content:space-between;align-items:flex-start;gap:1.5rem;padding:.85rem 0;border-bottom:1px solid var(--border);page-break-inside:avoid}
+  .item{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--border);page-break-inside:avoid}
   .item:last-child{border-bottom:none}
+  .item-img{width:80px;height:60px;object-fit:cover;border-radius:5px;flex-shrink:0}
+  .item-body{flex:1;display:flex;gap:1rem;align-items:flex-start}
   .item-info{flex:1}
   .item-name{font-size:11pt;font-weight:700;color:var(--text);margin-bottom:.25rem}
   .item-name .bs{font-size:7pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);border:1px solid rgba(204,0,0,.4);padding:.1rem .4rem;border-radius:100px;margin-left:.4rem;vertical-align:middle}
@@ -57,36 +59,48 @@
   <div class="sec-head"><h2 class="sec-title">Entradas</h2></div>
 <!-- ITEM:bocaditos:START -->
   <div class="item" data-id="bocaditos">
-    <div class="item-info">
-      <div class="item-name">Bocaditos de Reina</div>
-      <div class="item-desc">Láminas de pork belly ahumado por 8 horas con queso asado y confitura de tomate.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/bocaditos.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Bocaditos de Reina</div>
+        <div class="item-desc">Láminas de pork belly ahumado por 8 horas con queso asado y confitura de tomate.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$28.900</span></div>
   </div>
 <!-- ITEM:bocaditos:END -->
 <!-- ITEM:taquitos:START -->
   <div class="item" data-id="taquitos">
-    <div class="item-info">
-      <div class="item-name">Taquitos Ahumados</div>
-      <div class="item-desc">Tres tacos ahumados de tortilla de maíz: un taco brisket chopped, un taco pork belly chopped y un mixto. Acompañados de guacamole, pico de gallo y cebolla con cilantro.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/taquitos.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Taquitos Ahumados</div>
+        <div class="item-desc">Tres tacos ahumados de tortilla de maíz: un taco brisket chopped, un taco pork belly chopped y un mixto. Acompañados de guacamole, pico de gallo y cebolla con cilantro.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$28.900</span></div>
   </div>
 <!-- ITEM:taquitos:END -->
 <!-- ITEM:tostones:START -->
   <div class="item" data-id="tostones">
-    <div class="item-info">
-      <div class="item-name">Tostones Ahumados</div>
-      <div class="item-desc">3 canastas de tostones ahumados rellenas de guacamole, pico de gallo y pork belly chopped con alioli de ajo.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/tostones.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Tostones Ahumados</div>
+        <div class="item-desc">3 canastas de tostones ahumados rellenas de guacamole, pico de gallo y pork belly chopped con alioli de ajo.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$19.900</span></div>
   </div>
 <!-- ITEM:tostones:END -->
 <!-- ITEM:nachos:START -->
   <div class="item" data-id="nachos">
-    <div class="item-info">
-      <div class="item-name">Nachos Pulled</div>
-      <div class="item-desc">Pulled pork con nachos, guacamole y pico de gallo.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/nachos.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Nachos Pulled</div>
+        <div class="item-desc">Pulled pork con nachos, guacamole y pico de gallo.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$18.900</span></div>
   </div>
@@ -100,18 +114,24 @@
   <p class="sec-note">Disponible fines de semana o por encargo</p>
 <!-- ITEM:chicharron:START -->
   <div class="item" data-id="chicharron">
-    <div class="item-info">
-      <div class="item-name">Chicharrón 300g</div>
-      <div class="item-desc">300g de chicharrón carnudo al barril por 4 horas de cocción. Acompañado de papas criollas y zucchini al grill con vinagreta de ajo y limón.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/chicharron.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Chicharrón 300g</div>
+        <div class="item-desc">300g de chicharrón carnudo al barril por 4 horas de cocción. Acompañado de papas criollas y zucchini al grill con vinagreta de ajo y limón.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$54.900</span></div>
   </div>
 <!-- ITEM:chicharron:END -->
 <!-- ITEM:costilla:START -->
   <div class="item" data-id="costilla">
-    <div class="item-info">
-      <div class="item-name">Costilla 450g</div>
-      <div class="item-desc">450g de costilla carnuda al barril por 4 horas de cocción. Acompañado de papas criollas y zucchini al grill con vinagreta de ajo y limón.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/costilla.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Costilla 450g</div>
+        <div class="item-desc">450g de costilla carnuda al barril por 4 horas de cocción. Acompañado de papas criollas y zucchini al grill con vinagreta de ajo y limón.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$59.900</span></div>
   </div>
@@ -125,9 +145,12 @@
   <p class="sec-note">Sola / + Papas / Combo completo (papas + gaseosa) · Carne 100% Brangus en pan brioche</p>
 <!-- ITEM:chic-candy:START -->
   <div class="item" data-id="chic-candy">
-    <div class="item-info">
-      <div class="item-name">Chic-Candy <span class="bs">Bestseller</span></div>
-      <div class="item-desc">Prepárese para experimentar lo más dulce y salvaje: 130g carne BRANGUS, pork belly ahumado 8h en trocitos, confitura de tomate whiskey y canela, tocineta, queso philadelphia, queso cheddar, lechuga y alioli chipotle.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/chic-candy.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Chic-Candy <span class="bs">Bestseller</span></div>
+        <div class="item-desc">Prepárese para experimentar lo más dulce y salvaje: 130g carne BRANGUS, pork belly ahumado 8h en trocitos, confitura de tomate whiskey y canela, tocineta, queso philadelphia, queso cheddar, lechuga y alioli chipotle.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$33.900</span></div>
@@ -138,9 +161,12 @@
 <!-- ITEM:chic-candy:END -->
 <!-- ITEM:toffee:START -->
   <div class="item" data-id="toffee">
-    <div class="item-info">
-      <div class="item-name">Toffee</div>
-      <div class="item-desc">Una explosión dulce, salada y ácida: mayonesa de maracuyá, salsa toffee de tocineta, chips de yuca, queso gouda ahumado, pork belly ahumado, carne Brangus y encurtidos.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/toffee.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Toffee</div>
+        <div class="item-desc">Una explosión dulce, salada y ácida: mayonesa de maracuyá, salsa toffee de tocineta, chips de yuca, queso gouda ahumado, pork belly ahumado, carne Brangus y encurtidos.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$34.900</span></div>
@@ -151,9 +177,12 @@
 <!-- ITEM:toffee:END -->
 <!-- ITEM:romanoff:START -->
   <div class="item" data-id="romanoff">
-    <div class="item-info">
-      <div class="item-name">Romanoff</div>
-      <div class="item-desc">Pan brioche, queso philadelphia, carne 200g, queso parmesano, pork belly ahumado 8 horas. Terminamos con la salsa del Zar Alejandro I: fresas Romanoff.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/romanoff.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Romanoff</div>
+        <div class="item-desc">Pan brioche, queso philadelphia, carne 200g, queso parmesano, pork belly ahumado 8 horas. Terminamos con la salsa del Zar Alejandro I: fresas Romanoff.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$36.900</span></div>
@@ -164,9 +193,12 @@
 <!-- ITEM:romanoff:END -->
 <!-- ITEM:welsh:START -->
   <div class="item" data-id="welsh">
-    <div class="item-info">
-      <div class="item-name">The Welsh</div>
-      <div class="item-desc">Carne madurada premium, chopped brisket ahumado, toque de maple artesanal y salsa Welsh Rarebit cremoso.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/welsh.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">The Welsh</div>
+        <div class="item-desc">Carne madurada premium, chopped brisket ahumado, toque de maple artesanal y salsa Welsh Rarebit cremoso.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$35.900</span></div>
@@ -177,9 +209,12 @@
 <!-- ITEM:welsh:END -->
 <!-- ITEM:smoky:START -->
   <div class="item" data-id="smoky">
-    <div class="item-info">
-      <div class="item-name">Smoky</div>
-      <div class="item-desc">ÚNICA: pulled pork ahumado 9 horas, mermelada de manzana, tocineta, queso papialpa asado y queso cheddar. Carne 130g en pan brioche.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/smoky.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Smoky</div>
+        <div class="item-desc">ÚNICA: pulled pork ahumado 9 horas, mermelada de manzana, tocineta, queso papialpa asado y queso cheddar. Carne 130g en pan brioche.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$35.900</span></div>
@@ -190,9 +225,12 @@
 <!-- ITEM:smoky:END -->
 <!-- ITEM:philabrisk:START -->
   <div class="item" data-id="philabrisk">
-    <div class="item-info">
-      <div class="item-name">Philabrisk</div>
-      <div class="item-desc">Algo que no has probado nunca: brisket (pecho) ahumado 12 horas tipo texano, queso philadelphia, carne 160g y tocineta.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/philabrisk.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Philabrisk</div>
+        <div class="item-desc">Algo que no has probado nunca: brisket (pecho) ahumado 12 horas tipo texano, queso philadelphia, carne 160g y tocineta.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$33.900</span></div>
@@ -203,9 +241,12 @@
 <!-- ITEM:philabrisk:END -->
 <!-- ITEM:epik:START -->
   <div class="item" data-id="epik">
-    <div class="item-info">
-      <div class="item-name">EPIK</div>
-      <div class="item-desc">Burger premium a precio de calle: BBQ, tomate al grill, lechuga, carne Brangus, queso cheddar, tocineta glaseada en panela y café, fideos de plátano y alioli de tomate escalivado.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/epik.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">EPIK</div>
+        <div class="item-desc">Burger premium a precio de calle: BBQ, tomate al grill, lechuga, carne Brangus, queso cheddar, tocineta glaseada en panela y café, fideos de plátano y alioli de tomate escalivado.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$27.900</span></div>
@@ -216,9 +257,12 @@
 <!-- ITEM:epik:END -->
 <!-- ITEM:monotov:START -->
   <div class="item" data-id="monotov">
-    <div class="item-info">
-      <div class="item-name">Monotov</div>
-      <div class="item-desc">Puro sabor: doble carne BRANGUS, queso mozzarella, queso cheddar, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ maple.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/monotov.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Monotov</div>
+        <div class="item-desc">Puro sabor: doble carne BRANGUS, queso mozzarella, queso cheddar, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ maple.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$33.900</span></div>
@@ -229,9 +273,12 @@
 <!-- ITEM:monotov:END -->
 <!-- ITEM:philadelphia:START -->
   <div class="item" data-id="philadelphia">
-    <div class="item-info">
-      <div class="item-name">Philadelphia</div>
-      <div class="item-desc">130g carne BRANGUS, queso philadelphia, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ maple.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/philadelphia.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Philadelphia</div>
+        <div class="item-desc">130g carne BRANGUS, queso philadelphia, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ maple.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$24.900</span></div>
@@ -242,9 +289,12 @@
 <!-- ITEM:philadelphia:END -->
 <!-- ITEM:cheese-bacon:START -->
   <div class="item" data-id="cheese-bacon">
-    <div class="item-info">
-      <div class="item-name">Cheese Bacon</div>
-      <div class="item-desc">130g carne BRANGUS, queso cheddar, queso mozzarella, más queso cheddar, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ maple.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/cheese-bacon.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Cheese Bacon</div>
+        <div class="item-desc">130g carne BRANGUS, queso cheddar, queso mozzarella, más queso cheddar, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ maple.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$24.900</span></div>
@@ -255,9 +305,12 @@
 <!-- ITEM:cheese-bacon:END -->
 <!-- ITEM:clasica:START -->
   <div class="item" data-id="clasica">
-    <div class="item-info">
-      <div class="item-name">Clásica</div>
-      <div class="item-desc">110g carne BRANGUS seleccionada, queso mozzarella, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ dulce.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/clasica.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Clásica</div>
+        <div class="item-desc">110g carne BRANGUS seleccionada, queso mozzarella, tocineta, lechuga y tomate. Salsas de maíz dulce y BBQ dulce.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$22.900</span></div>
@@ -274,9 +327,12 @@
   <div class="sec-head"><h2 class="sec-title">Perrito Ahumado</h2></div>
 <!-- ITEM:perrito:START -->
   <div class="item" data-id="perrito">
-    <div class="item-info">
-      <div class="item-name">Perrito Ahumado</div>
-      <div class="item-desc">Pan brioche, salchicha alemana, dip de queso philadelphia, mayonesa de ajo escalivado, hilos de papa y pork belly ahumado en trocitos.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/perrito.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Perrito Ahumado</div>
+        <div class="item-desc">Pan brioche, salchicha alemana, dip de queso philadelphia, mayonesa de ajo escalivado, hilos de papa y pork belly ahumado en trocitos.</div>
+      </div>
     </div>
     <div class="item-price"><div class="price-tiers">
         <div class="pt"><span class="pl">Sola</span><span class="pv">$35.900</span></div>
@@ -293,18 +349,24 @@
   <div class="sec-head"><h2 class="sec-title">Papas</h2></div>
 <!-- ITEM:pulled-papas:START -->
   <div class="item" data-id="pulled-papas">
-    <div class="item-info">
-      <div class="item-name">Pulled Papas</div>
-      <div class="item-desc">Una completa explosión de sabores: pulled pork ahumado 12 horas, queso costeño rallado, guacamole con pico de gallo y mayo chipotle.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/pulled-papas.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Pulled Papas</div>
+        <div class="item-desc">Una completa explosión de sabores: pulled pork ahumado 12 horas, queso costeño rallado, guacamole con pico de gallo y mayo chipotle.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$29.900</span></div>
   </div>
 <!-- ITEM:pulled-papas:END -->
 <!-- ITEM:papas-solas:START -->
   <div class="item" data-id="papas-solas">
-    <div class="item-info">
-      <div class="item-name">Papas Solas</div>
-      <div class="item-desc">Papas fritas al estilo de la casa. Incluye una salsa (ajo, chipotle, BBQ o roja). Salsa adicional $1.100 · Chimichurri $1.500.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/papas-solas.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Papas Solas</div>
+        <div class="item-desc">Papas fritas al estilo de la casa. Incluye una salsa (ajo, chipotle, BBQ o roja). Salsa adicional $1.100 · Chimichurri $1.500.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$5.900</span></div>
   </div>
@@ -318,36 +380,48 @@
   <p class="sec-note">Todos incluyen ensalada + arepa con queso mozzarella + papas a la francesa</p>
 <!-- ITEM:punta-anca:START -->
   <div class="item" data-id="punta-anca">
-    <div class="item-info">
-      <div class="item-name">Punta de Anca 250g</div>
-      <div class="item-desc">Corte Brangus 250g madurado, parte trasera de la res.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/punta-anca.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Punta de Anca 250g</div>
+        <div class="item-desc">Corte Brangus 250g madurado, parte trasera de la res.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$59.900</span></div>
   </div>
 <!-- ITEM:punta-anca:END -->
 <!-- ITEM:churrasco:START -->
   <div class="item" data-id="churrasco">
-    <div class="item-info">
-      <div class="item-name">Churrasco 250g</div>
-      <div class="item-desc">Corte Brangus 250g madurado, procedente de la chata.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/churrasco.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Churrasco 250g</div>
+        <div class="item-desc">Corte Brangus 250g madurado, procedente de la chata.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$54.900</span></div>
   </div>
 <!-- ITEM:churrasco:END -->
 <!-- ITEM:solomo:START -->
   <div class="item" data-id="solomo">
-    <div class="item-info">
-      <div class="item-name">Solomo 250g</div>
-      <div class="item-desc">Corte Brangus 250g madurado.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/solomo.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Solomo 250g</div>
+        <div class="item-desc">Corte Brangus 250g madurado.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$35.900</span></div>
   </div>
 <!-- ITEM:solomo:END -->
 <!-- ITEM:pincho:START -->
   <div class="item" data-id="pincho">
-    <div class="item-info">
-      <div class="item-name">Pincho de Pollo 250g</div>
-      <div class="item-desc">250g de pollo con tocineta.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/pincho.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Pincho de Pollo 250g</div>
+        <div class="item-desc">250g de pollo con tocineta.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$29.900</span></div>
   </div>
@@ -360,54 +434,72 @@
   <div class="sec-head"><h2 class="sec-title">Bebidas</h2></div>
 <!-- ITEM:gaseosa:START -->
   <div class="item" data-id="gaseosa">
-    <div class="item-info">
-      <div class="item-name">Gaseosas</div>
-      <div class="item-desc">Coca Cola, Coca Zero, Sprite, Premio, Cuatro, Agua Manzana, Agua Maracuyá, Hatsu Soda, Bretaña, Agua.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/gaseosa.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Gaseosas</div>
+        <div class="item-desc">Coca Cola, Coca Zero, Sprite, Premio, Cuatro, Agua Manzana, Agua Maracuyá, Hatsu Soda, Bretaña, Agua.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$5.900</span></div>
   </div>
 <!-- ITEM:gaseosa:END -->
 <!-- ITEM:aguila:START -->
   <div class="item" data-id="aguila">
-    <div class="item-info">
-      <div class="item-name">Águila / Águila Light / Pilsen</div>
-      <div class="item-desc">Cerveza nacional.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/aguila.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Águila / Águila Light / Pilsen</div>
+        <div class="item-desc">Cerveza nacional.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$6.900</span></div>
   </div>
 <!-- ITEM:aguila:END -->
 <!-- ITEM:club-col:START -->
   <div class="item" data-id="club-col">
-    <div class="item-info">
-      <div class="item-name">Club Colombia</div>
-      <div class="item-desc">Cerveza Club Colombia.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/club-col.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Club Colombia</div>
+        <div class="item-desc">Cerveza Club Colombia.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$7.900</span></div>
   </div>
 <!-- ITEM:club-col:END -->
 <!-- ITEM:cerveza-imp:START -->
   <div class="item" data-id="cerveza-imp">
-    <div class="item-info">
-      <div class="item-name">Corona / Heineken / Tres Cordilleras Rosada</div>
-      <div class="item-desc">Cervezas importadas y artesanales.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/cerveza-imp.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Corona / Heineken / Tres Cordilleras Rosada</div>
+        <div class="item-desc">Cervezas importadas y artesanales.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$9.900</span></div>
   </div>
 <!-- ITEM:cerveza-imp:END -->
 <!-- ITEM:michelada-s:START -->
   <div class="item" data-id="michelada-s">
-    <div class="item-info">
-      <div class="item-name">Soda Michelada</div>
-      <div class="item-desc">Michelada preparada con soda.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/michelada-s.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Soda Michelada</div>
+        <div class="item-desc">Michelada preparada con soda.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$9.900</span></div>
   </div>
 <!-- ITEM:michelada-s:END -->
 <!-- ITEM:michelada-c:START -->
   <div class="item" data-id="michelada-c">
-    <div class="item-info">
-      <div class="item-name">Cerveza Michelada</div>
-      <div class="item-desc">Michelada preparada con cerveza.</div>
+    <div class="item-body">
+      <img class="item-img" src="https://tomahoxs.com/img/michelada-c.jpg" onerror="this.remove()">
+      <div class="item-info">
+        <div class="item-name">Cerveza Michelada</div>
+        <div class="item-desc">Michelada preparada con cerveza.</div>
+      </div>
     </div>
     <div class="item-price"><span class="price-single">$11.900</span></div>
   </div>
