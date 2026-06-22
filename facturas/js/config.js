@@ -4,5 +4,13 @@ const CONFIG = {
   PEDIDOS_URL: 'https://script.google.com/macros/s/AKfycbzC0ejdZ_5NwkqY77s2e_2SQZtUvvBFRr2mf0yx3KT0m8UeH_4lgMVMlXBWuP-Jjd39/exec',
   GEMINI_API_KEY: 'AIzaSyBBpEvh_Gk1kFFQd5n8vEjcPmk3VsjxCrk',
   GEMINI_MODEL: 'gemini-2.5-flash',
-  MES_ACTUAL: new Date().toISOString().substring(0, 7) // 'YYYY-MM'
+  MES_ACTUAL: new Date().toISOString().substring(0, 7),
+  USERS: {
+    'admin':    { pass: 'toma2121', role: 'admin' },
+    'operario': { pass: 'toma1234', role: 'operario' }
+  },
+  ROLE_SCREENS: {
+    admin:    ['dashboard', 'scan', 'historial', 'recetas', 'costos'],
+    operario: ['scan', 'historial']
+  }
 };
