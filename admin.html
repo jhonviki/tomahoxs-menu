@@ -388,8 +388,10 @@ async function handleUpload(id, file) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin: PIN, id, content: b64 })
     });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Error desconocido');
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(pe) { throw new Error('Respuesta inválida: ' + text.substring(0, 80)); }
+    if (!data.ok) throw new Error(data.error || data.message || JSON.stringify(data));
 
     const url = '/img/' + id + '.jpg?v=' + Date.now();
     const img = document.getElementById('img-' + id);
