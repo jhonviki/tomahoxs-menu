@@ -61,6 +61,8 @@
     .hero-sub{font-size:.85rem;font-weight:500;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:.35rem;margin-bottom:1.4rem}
     .hero-tags{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.8rem}
     .hero-tag{font-size:.68rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--amber);background:rgba(255,51,51,.1);border:1px solid rgba(255,51,51,.22);padding:.28rem .7rem;border-radius:100px}
+    .admin-gear{position:absolute;top:1rem;right:1rem;z-index:10;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:50%;color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s,background .2s}
+    .admin-gear:hover{color:#fff;background:rgba(255,255,255,.18)}
     .hero-cta{display:inline-flex;align-items:center;gap:.5rem;background:var(--accent);color:#fff;font-weight:700;font-size:.9rem;letter-spacing:.04em;padding:.9rem 2rem;border-radius:100px;text-decoration:none;box-shadow:0 0 35px var(--glow);transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
     .hero-cta:hover{transform:scale(1.05);box-shadow:0 0 55px rgba(204,0,0,.55)}
 
@@ -140,6 +142,9 @@
 
 <header class="hero" id="top">
   <div class="hero-bg" aria-hidden="true"></div>
+  <a href="/admin" class="admin-gear" aria-label="Administración">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </a>
   <div class="hero-content">
     <p class="hero-loc">Belén · Medellín · Colombia</p>
     <h1 class="hero-brand">TOMAHOXS</h1>
