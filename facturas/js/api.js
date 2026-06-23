@@ -14,17 +14,15 @@ const API = {
     const url = new URL(CONFIG.APPS_SCRIPT_URL);
     url.searchParams.set('action', action);
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-    const res = await fetch(url.toString(), { redirect: 'follow' });
+    const res = await fetch(url.toString(), { redirect: 'follow', credentials: 'omit' });
     return res.json();
   },
 
   async post(body) {
-    // Apps Script redirige POST con 302, el browser convierte a GET y pierde el body.
-    // Solución: enviar como GET con payload JSON en query param — funciona sin CORS ni redirect issues.
     const url = new URL(CONFIG.APPS_SCRIPT_URL);
     url.searchParams.set('action', body.action);
     url.searchParams.set('payload', JSON.stringify(body));
-    const res = await fetch(url.toString(), { redirect: 'follow' });
+    const res = await fetch(url.toString(), { redirect: 'follow', credentials: 'omit' });
     return res.json();
   },
 
