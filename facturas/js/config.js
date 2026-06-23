@@ -5,6 +5,7 @@ const CONFIG = {
   MES_ACTUAL: new Date().toISOString().substring(0, 7),
   USERS: {
     'admin':    { pass: 'toma2121', role: 'admin' },
+    'jhomorsa': { pass: 'Andersson1152', role: 'admin' },
     'operario': { pass: 'toma1234', role: 'operario' }
   },
   ROLE_SCREENS: {
