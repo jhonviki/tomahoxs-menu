@@ -1,6 +1,6 @@
 // js/api.js
 const CACHE_TTL = 5 * 60 * 1000; // 5 min
-const NO_CACHE  = ['guardar', 'borrar', 'crear', 'check', 'setup', 'limpiar'];
+const NO_CACHE  = ['guardar', 'borrar', 'crear', 'check', 'setup', 'limpiar', 'getconfig'];
 
 const API = {
   _geminiKey: null,
