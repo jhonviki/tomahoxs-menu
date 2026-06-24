@@ -15,12 +15,12 @@ const SCAN = {
             <label class="btn btn-primary scan-btn-area" style="font-size:16px;padding:20px;justify-content:center;cursor:pointer">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
               TOMAR FOTO
-              <input type="file" accept="image/*" capture="environment" style="display:none" onchange="SCAN.handleFile(this)">
+              <input id="scan-input-camera" type="file" accept="image/*" capture="environment" style="display:none">
             </label>
             <label class="btn btn-secondary" style="padding:12px;justify-content:center;cursor:pointer">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               SUBIR DESDE GALERÍA
-              <input type="file" accept="image/*,application/pdf" style="display:none" onchange="SCAN.handleFile(this)">
+              <input id="scan-input-gallery" type="file" accept="image/*,application/pdf" style="display:none">
             </label>
           </div>
           <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--steel);margin-top:20px">JPG · PNG · PDF · Fotos de WhatsApp</div>
@@ -46,8 +46,8 @@ const SCAN = {
               <div class="amount large" id="scan-total">$0</div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-secondary" onclick="SCAN.reset()">← NUEVA FOTO</button>
-              <button class="btn btn-primary" id="scan-save-btn" onclick="SCAN.guardar()">GUARDAR EN SHEETS</button>
+              <button class="btn btn-secondary" id="scan-reset-btn">← NUEVA FOTO</button>
+              <button class="btn btn-primary" id="scan-save-btn">GUARDAR EN SHEETS</button>
             </div>
           </div>
         </div>
@@ -59,6 +59,11 @@ const SCAN = {
         </div>
       </div>
     `;
+
+    document.getElementById('scan-input-camera').addEventListener('change', function() { SCAN.handleFile(this); });
+    document.getElementById('scan-input-gallery').addEventListener('change', function() { SCAN.handleFile(this); });
+    document.getElementById('scan-reset-btn').addEventListener('click', () => SCAN.reset());
+    document.getElementById('scan-save-btn').addEventListener('click', () => SCAN.guardar());
   },
 
   async handleFile(input) {
@@ -93,13 +98,20 @@ const SCAN = {
     const tbody = document.getElementById('scan-items-table');
     tbody.innerHTML = SCAN.state.editedItems.map((item, i) => `
       <tr>
-        <td><input class="input-field" style="padding:4px 8px" value="${H(item.producto)}" onchange="SCAN.updateItem(${i},'producto',this.value)"></td>
-        <td><input class="input-field" style="padding:4px 8px;width:70px" type="number" value="${item.cantidad || ''}" onchange="SCAN.updateItem(${i},'cantidad',+this.value)"></td>
-        <td><input class="input-field" style="padding:4px 8px;width:60px" value="${H(item.unidad)}" onchange="SCAN.updateItem(${i},'unidad',this.value)"></td>
-        <td><input class="input-field" style="padding:4px 8px;width:90px;color:var(--ember)" type="number" value="${item.precio_unidad || ''}" onchange="SCAN.updateItem(${i},'precio_unidad',+this.value)"></td>
+        <td><input class="input-field" style="padding:4px 8px" value="${H(item.producto)}" data-idx="${i}" data-field="producto"></td>
+        <td><input class="input-field" style="padding:4px 8px;width:70px" type="number" value="${item.cantidad || ''}" data-idx="${i}" data-field="cantidad"></td>
+        <td><input class="input-field" style="padding:4px 8px;width:60px" value="${H(item.unidad)}" data-idx="${i}" data-field="unidad"></td>
+        <td><input class="input-field" style="padding:4px 8px;width:90px;color:var(--ember)" type="number" value="${item.precio_unidad || ''}" data-idx="${i}" data-field="precio_unidad"></td>
         <td style="color:var(--ember);font-family:'Bebas Neue',sans-serif;font-size:13px">${ENGINE.formatCOPFull((item.cantidad||0)*(item.precio_unidad||0))}</td>
       </tr>
     `).join('');
+
+    tbody.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const val = inp.type === 'number' ? +inp.value : inp.value;
+        SCAN.updateItem(+inp.dataset.idx, inp.dataset.field, val);
+      });
+    });
   },
 
   updateItem(idx, field, val) {
