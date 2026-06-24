@@ -1,6 +1,6 @@
 const COSTOS = {
   TARGETS: { mano_obra: 25, arriendo: 10, servicios: 5, publicidad: 5, otros: 5, cmv: 35 },
-  LABELS:  { mano_obra: 'Mano de obra', arriendo: 'Arriendo', servicios: 'Servicios públicos', publicidad: 'Publicidad', otros: 'Otros', cmv: 'CMV (ingredientes)' },
+  LABELS:  { mano_obra: 'Mano de obra', arriendo: 'Arriendo', servicios: 'Servicios públicos', publicidad: 'Publicidad', otros: 'Otros', cmv: 'CMV (recetas)' },
   _detalle: [],
 
   async render() {
@@ -8,17 +8,19 @@ const COSTOS = {
     el.innerHTML = COSTOS.skeleton();
 
     const mes = CONFIG.MES_ACTUAL;
-    let costos = {}, cmvTotal = 0, ventas = 0;
+    let costos = {}, cmvTotal = 0, cmvRecetas = 0, cmvOtros = 0, ventas = 0;
 
     try {
       const pedidosTimeout = new Promise(r => setTimeout(() => r({ pedidos: [] }), 8000));
-      const [costosData, dash, pedidosData] = await Promise.all([
+      const [costosData, dash, pedidosData, recetasData, facturasData] = await Promise.all([
         API.get('getCostos', { mes }),
         API.get('getDashboard', { mes }),
         Promise.race([
           fetch(CONFIG.PEDIDOS_URL + '?action=getPedidos').then(r => r.json()).catch(() => ({ pedidos: [] })),
           pedidosTimeout
-        ])
+        ]),
+        API.get('getRecetas').catch(() => []),
+        API.get('getFacturas', {}).catch(() => [])
       ]);
       costos = costosData || {};
       cmvTotal = dash.total || 0;
@@ -32,11 +34,31 @@ const COSTOS = {
       }
       // Restaurar detalle guardado
       try { COSTOS._detalle = costos.ventas_detalle ? JSON.parse(costos.ventas_detalle) : []; } catch { COSTOS._detalle = []; }
+      const facturasDelMes = (Array.isArray(facturasData) ? facturasData : [])
+        .filter(f => (f.fecha || '').substring(0, 7) === mes);
+      if (facturasDelMes.length > 0 && Array.isArray(recetasData) && recetasData.length > 0) {
+        const detalles = await Promise.all(
+          facturasDelMes.slice(0, 30).map(f => API.get('getFactura', { id: f.id }).catch(() => ({})))
+        );
+        const allItems = detalles.flatMap(d => d.items || []);
+        const allIngredientes = recetasData.flatMap(r => r.ingredientes || []);
+        for (const item of allItems) {
+          const val = Number(item.total || (item.cantidad || 0) * (item.precio_unidad || 0));
+          if (allIngredientes.some(ing => ENGINE.matchIngrediente(ing.producto, [item]))) {
+            cmvRecetas += val;
+          } else {
+            cmvOtros += val;
+          }
+        }
+      }
+      if (cmvRecetas + cmvOtros === 0) cmvRecetas = cmvTotal;
     } catch(e) {
       console.error('costos:', e);
       el.innerHTML = `<div style="padding:40px;color:var(--steel);font-family:'IBM Plex Mono',monospace;font-size:11px">Error al cargar P&amp;L</div>`;
       return;
     }
+
+    const costosAjustados = { ...costos, otros: Number(costos.otros || 0) + cmvOtros };
 
     el.innerHTML = `
       <div class="topbar">
@@ -52,16 +74,16 @@ const COSTOS = {
           </div>
           <div class="kpi-card">
             <div class="kpi-label">CMV</div>
-            <div class="kpi-value ${ventas ? (cmvTotal/ventas*100 <= 38 ? 'ok' : 'fire') : ''}">${ventas ? Math.round(cmvTotal/ventas*100) + '%' : '—'}</div>
-            <div class="kpi-sub">${ENGINE.formatCOP(cmvTotal)}</div>
+            <div class="kpi-value ${ventas ? (cmvRecetas/ventas*100 <= 38 ? 'ok' : 'fire') : ''}">${ventas ? Math.round(cmvRecetas/ventas*100) + '%' : '—'}</div>
+            <div class="kpi-sub">${ENGINE.formatCOP(cmvRecetas)}</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">UTILIDAD</div>
-            ${COSTOS._utilidadKpi(ventas, cmvTotal, costos)}
+            ${COSTOS._utilidadKpi(ventas, cmvRecetas, costosAjustados)}
           </div>
           <div class="kpi-card">
             <div class="kpi-label">TOTAL COSTOS</div>
-            ${COSTOS._totalCostosKpi(ventas, cmvTotal, costos)}
+            ${COSTOS._totalCostosKpi(ventas, cmvRecetas, costosAjustados)}
           </div>
         </div>
 
@@ -96,7 +118,7 @@ const COSTOS = {
 
           <div class="card">
             <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);letter-spacing:1.5px;margin-bottom:14px">ESTRUCTURA VS TARGET</div>
-            ${COSTOS._tabla(ventas, cmvTotal, costos)}
+            ${COSTOS._tabla(ventas, cmvRecetas, costosAjustados)}
           </div>
 
         </div>
