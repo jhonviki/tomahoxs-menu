@@ -93,9 +93,9 @@ const SCAN = {
     const tbody = document.getElementById('scan-items-table');
     tbody.innerHTML = SCAN.state.editedItems.map((item, i) => `
       <tr>
-        <td><input class="input-field" style="padding:4px 8px" value="${item.producto || ''}" onchange="SCAN.updateItem(${i},'producto',this.value)"></td>
+        <td><input class="input-field" style="padding:4px 8px" value="${H(item.producto)}" onchange="SCAN.updateItem(${i},'producto',this.value)"></td>
         <td><input class="input-field" style="padding:4px 8px;width:70px" type="number" value="${item.cantidad || ''}" onchange="SCAN.updateItem(${i},'cantidad',+this.value)"></td>
-        <td><input class="input-field" style="padding:4px 8px;width:60px" value="${item.unidad || ''}" onchange="SCAN.updateItem(${i},'unidad',this.value)"></td>
+        <td><input class="input-field" style="padding:4px 8px;width:60px" value="${H(item.unidad)}" onchange="SCAN.updateItem(${i},'unidad',this.value)"></td>
         <td><input class="input-field" style="padding:4px 8px;width:90px;color:var(--ember)" type="number" value="${item.precio_unidad || ''}" onchange="SCAN.updateItem(${i},'precio_unidad',+this.value)"></td>
         <td style="color:var(--ember);font-family:'Bebas Neue',sans-serif;font-size:13px">${ENGINE.formatCOPFull((item.cantidad||0)*(item.precio_unidad||0))}</td>
       </tr>
