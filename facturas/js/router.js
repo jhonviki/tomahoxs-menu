@@ -1,6 +1,6 @@
 // js/router.js
 const ROUTER = {
-  screens: ['dashboard', 'scan', 'historial', 'recetas', 'costos'],
+  screens: ['dashboard', 'scan', 'historial', 'recetas', 'costos', 'inventario'],
   current: null,
 
   init() {
