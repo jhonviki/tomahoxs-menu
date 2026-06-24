@@ -31,6 +31,7 @@ const SCAN = {
             <div>
               <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--steel);letter-spacing:3px">PASO 2 — REVISAR Y GUARDAR</div>
               <div id="scan-proveedor" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--bone);margin-top:4px"></div>
+              <input id="scan-fecha" type="date" class="input-field" style="margin-top:4px;font-size:11px;padding:4px 8px;color:var(--steel)">
             </div>
             <span class="tag tag-ia" id="scan-fuente-badge">✦ IA</span>
           </div>
@@ -90,6 +91,8 @@ const SCAN = {
     document.getElementById('scan-loading').style.display = 'none';
     document.getElementById('scan-step2').style.display = 'block';
     document.getElementById('scan-proveedor').textContent = result.proveedor || 'Proveedor desconocido';
+    const fechaEl = document.getElementById('scan-fecha');
+    if (fechaEl) fechaEl.value = result.fecha || new Date().toISOString().substring(0, 10);
     SCAN.renderItemsTable();
     SCAN.updateTotal();
   },
@@ -133,9 +136,10 @@ const SCAN = {
     btn.textContent = 'GUARDANDO...';
     btn.disabled = true;
     const total = SCAN.state.editedItems.reduce((s, i) => s + ((i.cantidad||0)*(i.precio_unidad||0)), 0);
+    const fechaEl = document.getElementById('scan-fecha');
     const factura = {
       id: ENGINE.genId(),
-      fecha: SCAN.state.geminiResult?.fecha || new Date().toISOString().substring(0, 10),
+      fecha: fechaEl?.value || SCAN.state.geminiResult?.fecha || new Date().toISOString().substring(0, 10),
       proveedor: SCAN.state.geminiResult?.proveedor || 'Manual',
       total,
       fuente: 'IA',
@@ -147,6 +151,7 @@ const SCAN = {
     }));
     try {
       await API.post({ action: 'guardarFactura', factura, items });
+      API.clearCache();
       APP.toast('✓ Factura enviada — verifica en Sheets');
       SCAN.reset();
       ROUTER.navigate('historial');
