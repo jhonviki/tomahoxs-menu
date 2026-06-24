@@ -24,7 +24,8 @@ const DASHBOARD = {
       APP.state.recetas = Array.isArray(recetas) ? recetas : [];
       APP.state.items = items;
     } catch(e) {
-      el.innerHTML = `<div style="padding:40px;color:var(--steel);font-family:'IBM Plex Mono',monospace;font-size:11px">Error cargando dashboard: ${e.message}</div>`;
+      console.error('dashboard:', e);
+      el.innerHTML = `<div style="padding:40px;color:var(--steel);font-family:'IBM Plex Mono',monospace;font-size:11px">Error al cargar el dashboard</div>`;
       return;
     }
 
@@ -50,7 +51,7 @@ const DASHBOARD = {
       </div>
       <div class="content">
         ${alertas.length ? `<div style="background:rgba(232,68,10,.08);border:1px solid rgba(232,68,10,.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ember)">
-          ⚠ ${alertas.length} plato${alertas.length > 1 ? 's' : ''} con margen bajo el target: ${alertas.map(r => r.nombre).join(', ')}
+          ⚠ ${alertas.length} plato${alertas.length > 1 ? 's' : ''} con margen bajo el target: ${alertas.map(r => H(r.nombre)).join(', ')}
         </div>` : ''}
 
         <div class="kpi-grid">
@@ -82,7 +83,7 @@ const DASHBOARD = {
             ${(dash.facturas || []).map(f => `
               <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer" onclick="ROUTER.navigate('historial')">
                 <div>
-                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--bone)">${f.proveedor || 'Sin nombre'}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--bone)">${H(f.proveedor) || 'Sin nombre'}</div>
                   <div style="font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--steel);margin-top:2px">${f.fecha || ''}</div>
                 </div>
                 <span class="amount">${ENGINE.formatCOP(f.total)}</span>
@@ -94,7 +95,7 @@ const DASHBOARD = {
             <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);letter-spacing:1.5px;margin-bottom:12px">MÁRGENES POR PLATO</div>
             ${margenesRecetas.sort((a,b) => a.margenPct - b.margenPct).slice(0, 6).map(r => `
               <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03)">
-                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--bone)">${r.nombre}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--bone)">${H(r.nombre)}</span>
                 <span class="badge-margin ${ENGINE.margenClass(r.margenPct)}">${r.margenPct}%</span>
               </div>
             `).join('') || '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:var(--steel);padding:20px 0;text-align:center">Carga facturas para ver márgenes</div>'}
