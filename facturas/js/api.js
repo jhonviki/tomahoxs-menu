@@ -29,6 +29,10 @@ const API = {
     try { localStorage.setItem(key, JSON.stringify({ v: value, t: Date.now() })); } catch {}
   },
 
+  clearCache(prefix) {
+    Object.keys(localStorage).filter(k => k.startsWith(prefix || 'as_')).forEach(k => localStorage.removeItem(k));
+  },
+
   async _fetch(url) {
     const res = await fetch(url.toString(), { redirect: 'follow', credentials: 'omit' });
     const text = await res.text();
