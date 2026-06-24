@@ -1,5 +1,7 @@
 // js/engine.js
 
+const H = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
 const ENGINE = {
   matchIngrediente(nombreIngrediente, allItems) {
     const q = (nombreIngrediente || '').toLowerCase().trim();
