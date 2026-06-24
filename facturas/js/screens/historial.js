@@ -44,7 +44,8 @@ const HISTORIAL = {
       HISTORIAL.renderTable();
       HISTORIAL.renderStats();
     } catch(e) {
-      document.getElementById('hist-table-wrap').innerHTML = `<div style="padding:20px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--steel)">Error: ${e.message}</div>`;
+      console.error('historial loadFacturas:', e);
+      document.getElementById('hist-table-wrap').innerHTML = `<div style="padding:20px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--steel)">Error al cargar facturas</div>`;
     }
   },
 
@@ -117,7 +118,7 @@ const HISTORIAL = {
         <tbody>
           ${rows.map(f => `
             <tr class="${HISTORIAL.state.selected?.id === f.id ? 'selected' : ''}" onclick="HISTORIAL.selectFactura('${f.id}')">
-              <td><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${provColor[f.proveedor]||'var(--steel)'};margin-right:6px;vertical-align:middle"></span>${f.proveedor || '—'}</td>
+              <td><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${provColor[f.proveedor]||'var(--steel)'};margin-right:6px;vertical-align:middle"></span>${H(f.proveedor) || '—'}</td>
               <td>${f.fecha || '—'}</td>
               <td>${f.items_count || 0} items</td>
               <td><span class="tag ${tagMap[f.fuente] || 'tag-manual'}">${tagText[f.fuente] || f.fuente || '—'}</span></td>
@@ -138,16 +139,16 @@ const HISTORIAL = {
       HISTORIAL.renderTable();
       detail.innerHTML = `
         <div style="padding:12px 14px;border-bottom:1px solid var(--coal)">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--bone)">${factura.proveedor || '—'}</div>
-          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);margin-top:2px">${factura.fecha || ''}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--bone)">${H(factura.proveedor) || '—'}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);margin-top:2px">${H(factura.fecha) || ''}</div>
         </div>
         <div style="flex:1;overflow-y:auto;padding:10px 14px">
           <div style="font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--steel);letter-spacing:1px;margin-bottom:8px">ÍTEMS</div>
           ${(factura.items || []).map(item => `
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">
               <div>
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--bone)">${item.producto}</div>
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--steel)">${item.cantidad} ${item.unidad} × ${ENGINE.formatCOPFull(item.precio_unidad)}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--bone)">${H(item.producto)}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--steel)">${H(item.cantidad)} ${H(item.unidad)} × ${ENGINE.formatCOPFull(item.precio_unidad)}</div>
               </div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel)">${ENGINE.formatCOP(item.total)}</div>
             </div>
@@ -162,7 +163,8 @@ const HISTORIAL = {
         </div>
       `;
     } catch(e) {
-      detail.innerHTML = `<div style="padding:20px;font-size:10px;color:var(--steel);font-family:'IBM Plex Mono',monospace">Error: ${e.message}</div>`;
+      console.error('historial selectFactura:', e);
+      detail.innerHTML = `<div style="padding:20px;font-size:10px;color:var(--steel);font-family:'IBM Plex Mono',monospace">Error al cargar factura</div>`;
     }
   },
 
