@@ -33,7 +33,8 @@ const COSTOS = {
       // Restaurar detalle guardado
       try { COSTOS._detalle = costos.ventas_detalle ? JSON.parse(costos.ventas_detalle) : []; } catch { COSTOS._detalle = []; }
     } catch(e) {
-      el.innerHTML = `<div style="padding:40px;color:var(--steel);font-family:'IBM Plex Mono',monospace;font-size:11px">Error: ${e.message}</div>`;
+      console.error('costos:', e);
+      el.innerHTML = `<div style="padding:40px;color:var(--steel);font-family:'IBM Plex Mono',monospace;font-size:11px">Error al cargar P&amp;L</div>`;
       return;
     }
 
@@ -110,7 +111,7 @@ const COSTOS = {
         ${detalle.map(r => {
           const pct = total ? Math.round(r.total / total * 100) : 0;
           return `<tr style="border-top:1px solid rgba(200,169,110,.1)">
-            <td style="padding:4px 0;color:var(--bone)">${r.metodo}</td>
+            <td style="padding:4px 0;color:var(--bone)">${H(r.metodo)}</td>
             <td style="text-align:right;color:var(--steel);padding-right:8px">${pct}%</td>
             <td style="text-align:right;color:var(--gold)">${ENGINE.formatCOPFull(r.total)}</td>
           </tr>`;
