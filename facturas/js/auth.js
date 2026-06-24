@@ -5,11 +5,15 @@ const AUTH = {
     try { return JSON.parse(localStorage.getItem(AUTH.SESSION_KEY)); } catch { return null; }
   },
 
-  login(user, pass) {
-    const u = CONFIG.USERS[user.toLowerCase()];
-    if (!u || u.pass !== pass) return false;
-    localStorage.setItem(AUTH.SESSION_KEY, JSON.stringify({ user: user.toLowerCase(), role: u.role }));
-    return true;
+  async login(user, pass) {
+    try {
+      const res = await API.get('checkAdminAuth', { user: user.toLowerCase(), pass });
+      if (!res.ok) return false;
+      localStorage.setItem(AUTH.SESSION_KEY, JSON.stringify({ user: user.toLowerCase(), role: res.role }));
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   logout() {
@@ -47,19 +51,24 @@ const AUTH = {
   },
 
   init() {
-    document.getElementById('login-form').addEventListener('submit', e => {
+    document.getElementById('login-form').addEventListener('submit', async e => {
       e.preventDefault();
       const user = document.getElementById('login-user').value.trim();
       const pass = document.getElementById('login-pass').value;
-      if (AUTH.login(user, pass)) {
+      const btn = e.target.querySelector('[type=submit]');
+      const err = document.getElementById('login-error');
+      btn.disabled = true;
+      err.textContent = '';
+      if (await AUTH.login(user, pass)) {
         AUTH.hideLogin();
         AUTH.renderSidebar();
         ROUTER.init();
         const first = (CONFIG.ROLE_SCREENS[AUTH.get().role] || ['scan'])[0];
         ROUTER.navigate(first);
       } else {
-        document.getElementById('login-error').textContent = 'Usuario o contraseña incorrectos';
+        err.textContent = 'Usuario o contraseña incorrectos';
       }
+      btn.disabled = false;
     });
   }
 };
