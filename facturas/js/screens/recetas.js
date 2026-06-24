@@ -32,7 +32,8 @@ const RECETAS = {
       }
       RECETAS.buildView();
     } catch(e) {
-      document.getElementById('recetas-loading').innerHTML = `<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--steel)">Error: ${e.message}</div>`;
+      console.error('recetas:', e);
+      document.getElementById('recetas-loading').innerHTML = `<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--steel)">Error al cargar recetas</div>`;
     }
   },
 
@@ -48,12 +49,12 @@ const RECETAS = {
     content.innerHTML = `
       <div style="width:260px;border-right:1px solid var(--coal);overflow-y:auto;flex-shrink:0">
         ${withMargen.map(r => `
-          <div class="receta-item" data-nombre="${r.nombre}" style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .1s"
-               onclick="RECETAS.selectReceta('${r.nombre.replace(/'/g,"\\'")}')"
+          <div class="receta-item" data-nombre="${H(r.nombre)}" style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .1s"
+               onclick="RECETAS.selectReceta(this.dataset.nombre)"
                onmouseover="this.style.background='rgba(255,255,255,.03)'"
                onmouseout="this.style.background=RECETAS.state.selected===this.dataset.nombre?'rgba(232,68,10,.06)':'transparent'">
             <div>
-              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--bone)">${r.nombre}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--bone)">${H(r.nombre)}</div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);margin-top:2px">${ENGINE.formatCOP(r.precio_venta)}</div>
             </div>
             <span class="badge-margin ${r.calc.ok ? ENGINE.margenClass(r.calc.margenPct || 0) : 'warn'}">
@@ -85,7 +86,7 @@ const RECETAS = {
     detail.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
         <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--bone)">${receta.nombre}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--bone)">${H(receta.nombre)}</div>
           <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--steel);margin-top:4px">
             ${receta.num_porciones > 1 ? receta.num_porciones + ' porciones · ' : ''}
             Error buffer: ${Math.round((receta.margen_error || 0.08) * 100)}% · Target: ${Math.round((receta.pct_materia_prima || 0.35) * 100)}% food cost
