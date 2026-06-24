@@ -94,14 +94,16 @@ const INV = {
 
   _selTipo(val, el) {
     INV._tipo = val;
-    document.querySelectorAll('.inv-tipo').forEach(b => b.classList.remove('btn-primary'));
+    document.querySelectorAll('.inv-tipo').forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-secondary'); });
+    el.classList.remove('btn-secondary');
     el.classList.add('btn-primary');
     INV._check();
   },
 
   _selMod(val, el) {
     INV._modulo = val;
-    document.querySelectorAll('.inv-mod').forEach(b => b.classList.remove('btn-primary'));
+    document.querySelectorAll('.inv-mod').forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-secondary'); });
+    el.classList.remove('btn-secondary');
     el.classList.add('btn-primary');
     INV._check();
   },
