@@ -11,10 +11,14 @@ const COSTOS = {
     let costos = {}, cmvTotal = 0, ventas = 0;
 
     try {
+      const pedidosTimeout = new Promise(r => setTimeout(() => r({ pedidos: [] }), 8000));
       const [costosData, dash, pedidosData] = await Promise.all([
         API.get('getCostos', { mes }),
         API.get('getDashboard', { mes }),
-        fetch(CONFIG.PEDIDOS_URL + '?action=getPedidos').then(r => r.json()).catch(() => ({ pedidos: [] }))
+        Promise.race([
+          fetch(CONFIG.PEDIDOS_URL + '?action=getPedidos').then(r => r.json()).catch(() => ({ pedidos: [] })),
+          pedidosTimeout
+        ])
       ]);
       costos = costosData || {};
       cmvTotal = dash.total || 0;
