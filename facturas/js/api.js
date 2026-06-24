@@ -1,4 +1,7 @@
 // js/api.js
+const CACHE_TTL = 5 * 60 * 1000; // 5 min
+const NO_CACHE  = ['guardar', 'borrar', 'crear', 'check', 'setup', 'limpiar'];
+
 const API = {
   _geminiKey: null,
 
@@ -10,24 +13,49 @@ const API = {
     return API._geminiKey;
   },
 
-  async get(action, params = {}) {
-    const url = new URL(CONFIG.APPS_SCRIPT_URL);
-    url.searchParams.set('action', action);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  _cacheKey(action, params) {
+    return 'as_' + action + JSON.stringify(params);
+  },
+
+  _fromCache(key) {
+    try {
+      const c = JSON.parse(localStorage.getItem(key));
+      if (c && Date.now() - c.t < CACHE_TTL) return c.v;
+    } catch {}
+    return null;
+  },
+
+  _toCache(key, value) {
+    try { localStorage.setItem(key, JSON.stringify({ v: value, t: Date.now() })); } catch {}
+  },
+
+  async _fetch(url) {
     const res = await fetch(url.toString(), { redirect: 'follow', credentials: 'omit' });
     const text = await res.text();
     if (text.trim().startsWith('<')) throw new Error('Apps Script no responde — verifica el deployment');
     return JSON.parse(text);
   },
 
+  async get(action, params = {}) {
+    const url = new URL(CONFIG.APPS_SCRIPT_URL);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+
+    const cacheable = !NO_CACHE.some(p => action.toLowerCase().startsWith(p));
+    if (!cacheable) return API._fetch(url);
+
+    const key = API._cacheKey(action, params);
+    const cached = API._fromCache(key);
+    const fresh = API._fetch(url).then(v => { API._toCache(key, v); return v; }).catch(() => null);
+    if (cached) { fresh.catch(() => {}); return cached; } // stale-while-revalidate
+    return fresh;
+  },
+
   async post(body) {
     const url = new URL(CONFIG.APPS_SCRIPT_URL);
     url.searchParams.set('action', body.action);
     url.searchParams.set('payload', JSON.stringify(body));
-    const res = await fetch(url.toString(), { redirect: 'follow', credentials: 'omit' });
-    const text = await res.text();
-    if (text.trim().startsWith('<')) throw new Error('Apps Script no responde — verifica el deployment');
-    return JSON.parse(text);
+    return API._fetch(url);
   },
 
   async scanWithGemini(imageBase64, mimeType = 'image/jpeg') {
