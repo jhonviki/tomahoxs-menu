@@ -15,7 +15,9 @@ const API = {
     url.searchParams.set('action', action);
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
     const res = await fetch(url.toString(), { redirect: 'follow', credentials: 'omit' });
-    return res.json();
+    const text = await res.text();
+    if (text.trim().startsWith('<')) throw new Error('Apps Script no responde — verifica el deployment');
+    return JSON.parse(text);
   },
 
   async post(body) {
@@ -23,7 +25,9 @@ const API = {
     url.searchParams.set('action', body.action);
     url.searchParams.set('payload', JSON.stringify(body));
     const res = await fetch(url.toString(), { redirect: 'follow', credentials: 'omit' });
-    return res.json();
+    const text = await res.text();
+    if (text.trim().startsWith('<')) throw new Error('Apps Script no responde — verifica el deployment');
+    return JSON.parse(text);
   },
 
   async scanWithGemini(imageBase64, mimeType = 'image/jpeg') {
