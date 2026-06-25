@@ -44,7 +44,7 @@ const DASHBOARD = {
         <div>
           <div class="page-title">DASHBOARD</div>
         </div>
-        <button class="btn btn-primary" onclick="ROUTER.navigate('scan')">
+        <button id="dash-scan-btn" class="btn btn-primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7V1h-6M1 7V1h6M23 17v6h-6M1 17v6h6"/></svg>
           ESCANEAR
         </button>
@@ -81,7 +81,7 @@ const DASHBOARD = {
           <div class="card">
             <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);letter-spacing:1.5px;margin-bottom:12px">ÚLTIMAS FACTURAS</div>
             ${(dash.facturas || []).map(f => `
-              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer" onclick="ROUTER.navigate('historial')">
+              <div data-nav="historial" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer">
                 <div>
                   <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--bone)">${H(f.proveedor) || 'Sin nombre'}</div>
                   <div style="font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--steel);margin-top:2px">${f.fecha || ''}</div>
@@ -103,6 +103,12 @@ const DASHBOARD = {
         </div>
       </div>
     `;
+
+    document.getElementById('dash-scan-btn').addEventListener('click', () => ROUTER.navigate('scan'));
+    el.addEventListener('click', e => {
+      const row = e.target.closest('[data-nav]');
+      if (row) ROUTER.navigate(row.dataset.nav);
+    });
   },
 
   skeleton() {
