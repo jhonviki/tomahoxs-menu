@@ -9,6 +9,21 @@ const HISTORIAL = {
     HISTORIAL.state = { facturas: [], selected: null, mesFilter: CONFIG.MES_ACTUAL, busqueda: '' };
     const el = document.getElementById('screen-historial');
     el.innerHTML = HISTORIAL.buildShell();
+    document.getElementById('hist-scan-btn').addEventListener('click', () => ROUTER.navigate('scan'));
+    document.getElementById('hist-search').addEventListener('input', e => HISTORIAL.filtrar(e.target.value));
+    document.getElementById('hist-csv-btn').addEventListener('click', () => HISTORIAL.exportCSV());
+    document.getElementById('hist-mes-chips').addEventListener('click', e => {
+      const chip = e.target.closest('[data-mes]');
+      if (chip) HISTORIAL.cambiarMes(chip.dataset.mes);
+    });
+    document.getElementById('hist-table-wrap').addEventListener('click', e => {
+      const row = e.target.closest('[data-id]');
+      if (row) HISTORIAL.selectFactura(row.dataset.id);
+    });
+    document.getElementById('hist-detail').addEventListener('click', e => {
+      const btn = e.target.closest('[data-borrar]');
+      if (btn) HISTORIAL.borrar(btn.dataset.borrar);
+    });
     await HISTORIAL.loadFacturas();
   },
 
@@ -16,15 +31,15 @@ const HISTORIAL = {
     return `
       <div class="topbar">
         <div class="page-title">HISTORIAL</div>
-        <button class="btn btn-primary" onclick="ROUTER.navigate('scan')">+ ESCANEAR</button>
+        <button id="hist-scan-btn" class="btn btn-primary">+ ESCANEAR</button>
       </div>
       <div style="padding:10px 24px;border-bottom:1px solid var(--coal);display:flex;gap:8px;align-items:center;flex-shrink:0">
         <div style="flex:1;background:var(--ash);border:1px solid var(--coal);border-radius:6px;padding:6px 10px;display:flex;gap:6px;align-items:center">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--steel)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input id="hist-search" class="input-field" style="border:none;background:transparent;padding:0;font-size:10px" placeholder="Buscar proveedor o producto..." oninput="HISTORIAL.filtrar(this.value)">
+          <input id="hist-search" class="input-field" style="border:none;background:transparent;padding:0;font-size:10px" placeholder="Buscar proveedor o producto...">
         </div>
         <div id="hist-mes-chips" style="display:flex;gap:6px"></div>
-        <button class="btn btn-secondary" style="font-size:10px" onclick="HISTORIAL.exportCSV()">⬇ CSV</button>
+        <button id="hist-csv-btn" class="btn btn-secondary" style="font-size:10px">⬇ CSV</button>
       </div>
       <div id="hist-stats" style="display:flex;border-bottom:1px solid var(--coal);flex-shrink:0"></div>
       <div style="display:flex;flex:1;overflow:hidden">
@@ -56,11 +71,9 @@ const HISTORIAL = {
     meses.push(prev.toISOString().substring(0, 7));
     const container = document.getElementById('hist-mes-chips');
     container.innerHTML = [...meses, null].map(m => {
-      // Normalizar: chip TODOS tiene m===null, mesFilter==='' cuando está activo
       const active = (m || '') === HISTORIAL.state.mesFilter;
       return `
-      <div style="background:${active ? 'rgba(232,68,10,.15)' : 'var(--ash)'};border:1px solid ${active ? 'var(--fire)' : 'var(--coal)'};border-radius:20px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:${active ? 'var(--ember)' : 'var(--steel)'};cursor:pointer;white-space:nowrap"
-           onclick="HISTORIAL.cambiarMes('${m || ''}')">
+      <div data-mes="${m || ''}" style="background:${active ? 'rgba(232,68,10,.15)' : 'var(--ash)'};border:1px solid ${active ? 'var(--fire)' : 'var(--coal)'};border-radius:20px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:${active ? 'var(--ember)' : 'var(--steel)'};cursor:pointer;white-space:nowrap">
         ${m ? m.substring(5) + '/' + m.substring(0, 4) : 'TODOS'}
       </div>
       `;
@@ -117,7 +130,7 @@ const HISTORIAL = {
         <thead><tr><th>PROVEEDOR</th><th>FECHA</th><th>ÍTEMS</th><th>FUENTE</th><th style="text-align:right">TOTAL</th></tr></thead>
         <tbody>
           ${rows.map(f => `
-            <tr class="${HISTORIAL.state.selected?.id === f.id ? 'selected' : ''}" onclick="HISTORIAL.selectFactura('${f.id}')">
+            <tr data-id="${f.id}" class="${HISTORIAL.state.selected?.id === f.id ? 'selected' : ''}" style="cursor:pointer">
               <td><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${provColor[f.proveedor]||'var(--steel)'};margin-right:6px;vertical-align:middle"></span>${H(f.proveedor) || '—'}</td>
               <td>${f.fecha || '—'}</td>
               <td>${f.items_count || 0} items</td>
@@ -159,7 +172,7 @@ const HISTORIAL = {
             <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--steel)">TOTAL</span>
             <span class="amount large">${ENGINE.formatCOPFull(factura.total)}</span>
           </div>
-          <button class="btn btn-secondary" style="width:100%;font-size:9px;color:var(--ember);border-color:rgba(232,68,10,.3)" onclick="HISTORIAL.borrar('${factura.id}')">✕ BORRAR FACTURA</button>
+          <button data-borrar="${factura.id}" class="btn btn-secondary" style="width:100%;font-size:9px;color:var(--ember);border-color:rgba(232,68,10,.3)">✕ BORRAR FACTURA</button>
         </div>
       `;
     } catch(e) {
