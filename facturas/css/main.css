@@ -209,6 +209,9 @@ tbody td { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(-
 .sparkline-bar { transform-origin: bottom; animation: sp-in .4s ease both; }
 @keyframes sp-in { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 
+.receta-item:hover { background: rgba(255,255,255,.03) !important; }
+.receta-item.selected { background: rgba(232,68,10,.06) !important; }
+
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
