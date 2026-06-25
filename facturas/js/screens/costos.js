@@ -97,7 +97,7 @@ const COSTOS = {
                 <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:1.5px">VENTAS LOGGRO</div>
                 <label class="btn btn-secondary" style="padding:5px 10px;cursor:pointer;font-size:8px">
                   📂 SUBIR REPORTE
-                  <input type="file" accept=".csv,.xlsx,.xls,.pdf,image/*" style="display:none" onchange="COSTOS.parsearReporte(this)">
+                  <input id="costos-loggro-file" type="file" accept=".csv,.xlsx,.xls,.pdf,image/*" style="display:none">
                 </label>
               </div>
               <input id="costo-ventas_loggro" type="number" min="0" value="${costos.ventas_loggro || ''}" placeholder="0 — o sube el Excel de Loggro"
@@ -113,7 +113,7 @@ const COSTOS = {
                   style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:8px 10px;color:var(--bone);font-family:'IBM Plex Mono',monospace;font-size:11px;box-sizing:border-box">
               </div>
             `).join('')}
-            <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="COSTOS.guardar('${mes}')">GUARDAR</button>
+            <button id="costos-guardar-btn" class="btn btn-primary" style="width:100%;margin-top:4px">GUARDAR</button>
           </div>
 
           <div class="card">
@@ -123,6 +123,9 @@ const COSTOS = {
 
         </div>
       </div>`;
+
+    document.getElementById('costos-guardar-btn').addEventListener('click', () => COSTOS.guardar(mes));
+    document.getElementById('costos-loggro-file').addEventListener('change', function() { COSTOS.parsearReporte(this); });
   },
 
   _detalleHTML(detalle) {
