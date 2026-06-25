@@ -49,10 +49,7 @@ const RECETAS = {
     content.innerHTML = `
       <div style="width:260px;border-right:1px solid var(--coal);overflow-y:auto;flex-shrink:0">
         ${withMargen.map(r => `
-          <div class="receta-item" data-nombre="${H(r.nombre)}" style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .1s"
-               onclick="RECETAS.selectReceta(this.dataset.nombre)"
-               onmouseover="this.style.background='rgba(255,255,255,.03)'"
-               onmouseout="this.style.background=RECETAS.state.selected===this.dataset.nombre?'rgba(232,68,10,.06)':'transparent'">
+          <div class="receta-item" data-nombre="${H(r.nombre)}" style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .1s">
             <div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--bone)">${H(r.nombre)}</div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel);margin-top:2px">${ENGINE.formatCOP(r.precio_venta)}</div>
@@ -70,13 +67,19 @@ const RECETAS = {
       </div>
     `;
 
+    content.addEventListener('click', e => {
+      const item = e.target.closest('.receta-item');
+      if (item) { RECETAS.selectReceta(item.dataset.nombre); return; }
+      const btn = e.target.closest('[data-ver-precio]');
+      if (btn) APP.toast('Precio sugerido: ' + btn.dataset.verPrecio + ' (redondeado al próximo $500)');
+    });
     if (withMargen.length > 0) RECETAS.selectReceta(withMargen[0].nombre);
   },
 
   selectReceta(nombre) {
     RECETAS.state.selected = nombre;
     document.querySelectorAll('.receta-item').forEach(el => {
-      el.style.background = el.dataset.nombre === nombre ? 'rgba(232,68,10,.06)' : 'transparent';
+      el.classList.toggle('selected', el.dataset.nombre === nombre);
     });
     const receta = RECETAS.state.recetas.find(r => r.nombre === nombre);
     if (!receta) return;
@@ -140,7 +143,7 @@ const RECETAS = {
           <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--steel)">PRECIO SUGERIDO (food cost 35%)</div>
           <div class="amount large" style="color:var(--gold)">${ENGINE.formatCOPFull(calc.precioPotencialRedondeado)}</div>
         </div>
-        <button class="btn btn-secondary" data-precio="${ENGINE.formatCOPFull(calc.precioPotencialRedondeado)}" onclick="APP.toast('Precio sugerido: ' + this.dataset.precio + ' (redondeado al próximo $500)')">VER ANÁLISIS</button>
+        <button class="btn btn-secondary" data-ver-precio="${ENGINE.formatCOPFull(calc.precioPotencialRedondeado)}">VER ANÁLISIS</button>
       </div>
       ` : ''}
     `;
