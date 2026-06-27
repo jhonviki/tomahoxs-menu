@@ -1,5 +1,5 @@
 // sw.js
-const CACHE = 'tomahoxs-v5';
+const CACHE = 'tomahoxs-v6';
 const STATIC = [
   '/', '/index.html', '/css/main.css',
   '/js/config.js', '/js/engine.js', '/js/api.js',
