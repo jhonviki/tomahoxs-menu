@@ -89,14 +89,26 @@
     .card-name{font-size:1rem;font-weight:600;line-height:1.3}
     .tag-bs{display:inline-block;font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:rgba(204,0,0,.1);border:1px solid rgba(204,0,0,.25);padding:.12rem .45rem;border-radius:100px;margin-left:.4rem;vertical-align:middle}
     .card-img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;margin-bottom:.65rem;display:block}
-    .card-desc{font-size:.82rem;color:var(--muted);line-height:1.55;margin-bottom:.85rem}
-    /* 3 tiers */
-    .prices{display:flex;gap:.45rem}
-    .pt{display:flex;flex-direction:column;align-items:center;background:rgba(255,245,230,.035);border:1px solid var(--border);border-radius:8px;padding:.45rem .6rem;flex:1;min-width:0}
-    .pl{font-size:.58rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ghost);margin-bottom:.18rem;white-space:nowrap}
-    .pv{font-size:.9rem;font-weight:700;white-space:nowrap}
+    /* desc clamp + toggle */
+    .card-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.82rem;color:var(--muted);line-height:1.55;margin-bottom:.25rem}
+    .card-desc.expanded{display:block;overflow:visible}
+    .desc-more{background:none;border:none;padding:0;cursor:pointer;font-family:var(--fb);font-size:.73rem;color:var(--accent);margin-bottom:.6rem;display:none;letter-spacing:.01em}
+    .desc-more.visible{display:block}
+    .desc-more:hover{text-decoration:underline}
+    /* price hierarchy */
+    .price-hero{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.3rem}
+    .price-main{font-size:1.2rem;font-weight:700;color:var(--amber)}
+    .price-lbl{font-size:.65rem;color:var(--ghost);text-transform:uppercase;letter-spacing:.07em}
+    .price-alts{display:flex;gap:1.2rem;margin-bottom:.75rem}
+    .price-alt{font-size:.78rem;color:var(--muted)}
+    .price-alt b{color:var(--text);font-weight:600}
     /* single */
-    .price-s{font-size:1.1rem;font-weight:700;color:var(--amber)}
+    .price-s{font-size:1.1rem;font-weight:700;color:var(--amber);margin-bottom:.75rem;display:block}
+    /* agotado */
+    .card.agotado{opacity:.4;filter:grayscale(.6);pointer-events:none}
+    .tag-ag{display:inline-block;font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ff6b6b;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.28);padding:.12rem .45rem;border-radius:100px;margin-left:.4rem;vertical-align:middle}
+    /* badges */
+    .tag-fav{display:inline-block;font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#c9a96e;background:rgba(201,169,110,.12);border:1px solid rgba(201,169,110,.28);padding:.12rem .45rem;border-radius:100px;margin-left:.4rem;vertical-align:middle}
 
     /* FOOTER */
     .footer{background:#080604;border-top:1px solid var(--border);padding:3rem 1.5rem 2rem;text-align:center}
@@ -163,10 +175,10 @@
 
 <nav class="cat-nav" aria-label="Categorías">
   <div class="cat-inner" id="cat-inner">
-    <button class="cat-btn active" data-sec="entradas">Entradas</button>
-    <button class="cat-btn" data-sec="barril">Barril</button>
-    <button class="cat-btn" data-sec="hamburguesas">Hamburguesas</button>
+    <button class="cat-btn active" data-sec="hamburguesas">Hamburguesas</button>
+    <button class="cat-btn" data-sec="entradas">Entradas</button>
     <button class="cat-btn" data-sec="perrito">Perrito</button>
+    <button class="cat-btn" data-sec="barril">Barril</button>
     <button class="cat-btn" data-sec="papas">Papas</button>
     <button class="cat-btn" data-sec="cortes">Carnes</button>
     <button class="cat-btn" data-sec="bebidas">Bebidas</button>
@@ -307,6 +319,7 @@ const MENU = {
   }
 };
 
+const SECTION_ORDER = ['hamburguesas','entradas','perrito','barril','papas','cortes','bebidas'];
 const fmt = n => '$' + n.toLocaleString('es-CO');
 let agotados = new Set();
 
@@ -321,38 +334,73 @@ async function loadAgotados() {
   } catch {}
 }
 
-function card(item) {
-  if (agotados.has(item.id)) return '';
-  const cls = ['card', item.feat ? 'feat' : ''].filter(Boolean).join(' ');
-  let ph = '';
-  if (item.precios) {
-    ph = `<div class="prices">
-      <div class="pt"><span class="pl">Solo</span><span class="pv">${fmt(item.precios.solo)}</span></div>
-      <div class="pt"><span class="pl">+ Papas</span><span class="pv">${fmt(item.precios.papas)}</span></div>
-      <div class="pt"><span class="pl">Combo</span><span class="pv">${fmt(item.precios.combo)}</span></div>
-    </div>`;
-  } else if (item.precio) {
-    ph = `<p class="price-s">${fmt(item.precio)}</p>`;
+function checkAgotado(item) {
+  const idL = item.id.toLowerCase().replace(/-/g,' ');
+  const nomL = item.nombre.toLowerCase();
+  for (const a of agotados) {
+    const aL = a.toLowerCase().trim();
+    if (!aL) continue;
+    if (idL === aL || idL.includes(aL) || aL.includes(idL)
+      || nomL.includes(aL) || aL.includes(nomL.split(' ')[0])) return true;
   }
+  return false;
+}
+
+function card(item) {
+  const ag = checkAgotado(item);
+  const cls = ['card', item.feat && !ag ? 'feat' : '', ag ? 'agotado' : ''].filter(Boolean).join(' ');
+
+  let badge = '';
+  if (ag)                badge = '<span class="tag-ag">Agotado hoy</span>';
+  else if (item.bestseller) badge = '<span class="tag-fav">⭐ Favorito</span>';
+  else if (item.feat)    badge = '<span class="tag-bs">Recomendado</span>';
+
+  let ph = '';
+  if (!ag) {
+    if (item.precios) {
+      ph = `<div class="price-hero">
+        <span class="price-main">${fmt(item.precios.solo)}</span>
+        <span class="price-lbl">sola</span>
+      </div>
+      <div class="price-alts">
+        <span class="price-alt">+ papas <b>${fmt(item.precios.papas)}</b></span>
+        <span class="price-alt">combo <b>${fmt(item.precios.combo)}</b></span>
+      </div>`;
+    } else if (item.precio) {
+      ph = `<span class="price-s">${fmt(item.precio)}</span>`;
+    }
+  }
+
+  const did = `d-${item.id}`;
+  const descBlock = ag
+    ? `<p class="card-desc" style="-webkit-line-clamp:1;margin-bottom:.75rem">${item.desc}</p>`
+    : `<p class="card-desc" id="${did}">${item.desc}</p>
+       <button class="desc-more" onclick="toggleDesc('${did}',this)">Ver más ↓</button>`;
+
   return `<article class="${cls}">
     <img class="card-img" src="/img/${item.id}.jpg" onerror="this.style.display='none'" loading="lazy">
     <div class="card-top">
-      <h3 class="card-name">${item.nombre}${item.bestseller ? '<span class="tag-bs">Bestseller</span>' : ''}</h3>
+      <h3 class="card-name">${item.nombre}${badge}</h3>
     </div>
-    <p class="card-desc">${item.desc}</p>
+    ${descBlock}
     ${ph}
   </article>`;
 }
 
 function render() {
-  document.getElementById('mc').innerHTML = Object.entries(MENU).map(([k, s]) => {
-    const cards = s.items.map(card).filter(Boolean);
-    if (!cards.length) return '';
-    const n = cards.length;
+  document.getElementById('mc').innerHTML = SECTION_ORDER.map(k => {
+    const s = MENU[k];
+    if (!s) return '';
+    const cards = s.items.map(card);
+    const avail = s.items.filter(i => !checkAgotado(i)).length;
+    const total = s.items.length;
+    const cText = avail < total
+      ? `${avail} de ${total} disponibles`
+      : `${total} ${total === 1 ? 'opción' : 'opciones'}`;
     return `<section class="sec" id="${k}">
       <div class="sec-head">
         <h2 class="sec-title">${s.label}</h2>
-        <span class="sec-count">${n} ${n === 1 ? 'opción' : 'opciones'}</span>
+        <span class="sec-count">${cText}</span>
       </div>
       ${s.note ? `<p class="sec-note">${s.note}</p>` : ''}
       ${cards.join('')}
@@ -360,6 +408,7 @@ function render() {
   }).join('');
   document.getElementById('lb').style.display = 'none';
   initObs();
+  initDescToggles();
 }
 
 function initObs() {
@@ -372,6 +421,22 @@ function initObs() {
     });
   }, { rootMargin:'-35% 0px -60% 0px' });
   document.querySelectorAll('.sec').forEach(s => obs.observe(s));
+}
+
+function toggleDesc(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const exp = el.classList.toggle('expanded');
+  btn.textContent = exp ? 'Ver menos ↑' : 'Ver más ↓';
+}
+
+function initDescToggles() {
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.desc-more').forEach(btn => {
+      const prev = btn.previousElementSibling;
+      if (prev && prev.scrollHeight > prev.clientHeight + 1) btn.classList.add('visible');
+    });
+  });
 }
 
 document.querySelectorAll('.cat-btn').forEach(b => {
