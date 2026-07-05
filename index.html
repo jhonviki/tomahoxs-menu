@@ -175,8 +175,8 @@
 
 <nav class="cat-nav" aria-label="Categorías">
   <div class="cat-inner" id="cat-inner">
-    <button class="cat-btn active" data-sec="hamburguesas">Hamburguesas</button>
-    <button class="cat-btn" data-sec="entradas">Entradas</button>
+    <button class="cat-btn active" data-sec="entradas">Entradas</button>
+    <button class="cat-btn" data-sec="hamburguesas">Hamburguesas</button>
     <button class="cat-btn" data-sec="perrito">Perrito</button>
     <button class="cat-btn" data-sec="barril">Barril</button>
     <button class="cat-btn" data-sec="papas">Papas</button>
@@ -319,7 +319,7 @@ const MENU = {
   }
 };
 
-const SECTION_ORDER = ['hamburguesas','entradas','perrito','barril','papas','cortes','bebidas'];
+const SECTION_ORDER = ['entradas','hamburguesas','perrito','barril','papas','cortes','bebidas'];
 const fmt = n => '$' + n.toLocaleString('es-CO');
 let agotados = new Set();
 
