@@ -1,0 +1,17 @@
+{
+  "name": "Panel Tomahoxs",
+  "short_name": "Panel",
+  "description": "Panel de gestión Tomahoxs Grill",
+  "start_url": "/panel.html",
+  "display": "standalone",
+  "background_color": "#0c0906",
+  "theme_color": "#cc0000",
+  "icons": [
+    {
+      "src": "/og-image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
