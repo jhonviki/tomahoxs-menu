@@ -631,15 +631,18 @@ async function loadPedidos() {
 }
 
 function renderClientes() {
+  const toStr = d => d.toLocaleDateString('sv'); // YYYY-MM-DD hora local
   const hoy = new Date();
+  const hoyStr = toStr(hoy);
   const cutoff = new Date(hoy);
   cutoff.setDate(hoy.getDate() - (clDays - 1));
-  cutoff.setHours(0, 0, 0, 0);
+  const cutoffStr = toStr(cutoff);
 
   const pedidos = allPedidos.filter(p => {
     if (clDays >= 30) return true;
-    const f = p.fecha ? new Date(String(p.fecha).split('T')[0]) : null;
-    return f && f >= cutoff;
+    const f = String(p.fecha || '').split('T')[0];
+    if (!f) return false;
+    return clDays === 1 ? f === hoyStr : f >= cutoffStr;
   });
 
   const total = pedidos.reduce((s, p) => s + (parseFloat(String(p.total).replace(/[^\d.]/g, '')) || 0), 0);
