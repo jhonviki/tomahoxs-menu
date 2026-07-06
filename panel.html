@@ -630,6 +630,18 @@ async function loadPedidos() {
   }
 }
 
+function parseFecha(raw) {
+  if (!raw) return null;
+  const d = new Date(raw); // maneja "Fri Jun 26 2026 00:00:00 GMT-0500 ..."
+  return isNaN(d) ? null : d;
+}
+function parseHora(raw) {
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (isNaN(d)) return String(raw).slice(0, 5);
+  return d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
 function renderClientes() {
   const toStr = d => d.toLocaleDateString('sv'); // YYYY-MM-DD hora local
   const hoy = new Date();
@@ -640,8 +652,9 @@ function renderClientes() {
 
   const pedidos = allPedidos.filter(p => {
     if (clDays >= 30) return true;
-    const f = String(p.fecha || '').split('T')[0];
-    if (!f) return false;
+    const d = parseFecha(p.fecha);
+    if (!d) return false;
+    const f = toStr(d);
     return clDays === 1 ? f === hoyStr : f >= cutoffStr;
   });
 
@@ -660,7 +673,7 @@ function renderClientes() {
   document.getElementById('cl-list').innerHTML = pedidos.map(p => {
     const tipo  = String(p.tipo || '').toLowerCase();
     const esD   = tipo.includes('domicilio') || tipo.includes('delivery') || tipo.includes('envío');
-    const hora  = String(p.hora || '').slice(0, 5) || '—';
+    const hora  = parseHora(p.hora);
     const nombre = p.nombre || 'Sin nombre';
     const desc  = String(p.pedido || '').slice(0, 55) + (String(p.pedido || '').length > 55 ? '…' : '');
     const barrio = p.barrio ? `<span class="pedido-barrio">${p.barrio}</span>` : '';
