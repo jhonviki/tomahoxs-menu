@@ -213,6 +213,57 @@
       background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.25);
       color: #6ee7a0;
     }
+
+    /* ── Clientes ─────────────────────────────────────── */
+    .cl-filter {
+      display: flex; gap: .35rem; margin-bottom: 1rem;
+    }
+    .cl-filter-btn {
+      flex: 1; background: none;
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: .3rem 0; color: var(--muted);
+      font-family: var(--fb); font-size: .78rem; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+    }
+    .cl-filter-btn.active { background: rgba(255,245,230,.08); border-color: var(--muted); color: var(--text); }
+
+    .pedido-row {
+      padding: .75rem 0;
+      border-bottom: 1px solid rgba(255,245,230,.04);
+      display: flex; gap: .75rem; align-items: flex-start;
+    }
+    .pedido-row:last-child { border-bottom: none; }
+
+    .pedido-time {
+      font-family: var(--fd); font-size: .95rem; color: var(--ghost);
+      flex-shrink: 0; width: 46px; padding-top: .1rem;
+    }
+    .pedido-body { flex: 1; min-width: 0; }
+    .pedido-nombre {
+      font-size: .88rem; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pedido-meta { display: flex; gap: .4rem; align-items: center; margin-top: .22rem; flex-wrap: wrap; }
+    .tipo-badge {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; padding: .12rem .5rem; border-radius: 10px; flex-shrink: 0;
+    }
+    .tipo-badge.delivery { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.25); }
+    .tipo-badge.local    { background: rgba(34,197,94,.1);   color: #22c55e; border: 1px solid rgba(34,197,94,.2); }
+    .pedido-barrio { font-size: .72rem; color: var(--muted); }
+    .pedido-desc {
+      font-size: .75rem; color: var(--ghost); margin-top: .28rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pedido-total {
+      font-family: var(--fd); font-size: 1.05rem; color: var(--text);
+      flex-shrink: 0; text-align: right; padding-top: .1rem; min-width: 60px;
+    }
+    .pago-badge {
+      font-size: .6rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; color: var(--ghost);
+    }
+    .cl-empty { text-align: center; padding: 2rem; color: var(--ghost); font-size: .83rem; }
   </style>
 </head>
 <body>
@@ -260,11 +311,18 @@
 
 <!-- ── Clientes Tab ── -->
 <div class="tab-content" id="tab-clientes">
-  <div class="coming">
-    <div class="coming-icon">👥</div>
-    <h2>CLIENTES</h2>
-    <p>Historial de pedidos por cliente,<br>ticket promedio y frecuencia de visita.</p>
-    <span class="badge soon">Próximamente</span>
+  <div class="stats-row" id="cl-stats">
+    <div class="stat-card"><div class="stat-n neu" id="cl-cnt">—</div><div class="stat-l">pedidos</div></div>
+    <div class="stat-card"><div class="stat-n ok"  id="cl-rev">—</div><div class="stat-l">ingresos</div></div>
+    <div class="stat-card"><div class="stat-n neu" id="cl-avg">—</div><div class="stat-l">ticket prom.</div></div>
+  </div>
+  <div class="cl-filter">
+    <button class="cl-filter-btn active" data-days="1">Hoy</button>
+    <button class="cl-filter-btn"        data-days="7">7 días</button>
+    <button class="cl-filter-btn"        data-days="30">30 días</button>
+  </div>
+  <div id="cl-list">
+    <div class="skel"></div><div class="skel"></div><div class="skel"></div>
   </div>
 </div>
 
@@ -519,15 +577,24 @@ document.getElementById('discard-btn').addEventListener('click', () => {
 });
 
 // ── Sync button ───────────────────────────────────────────────────────────
-document.getElementById('sync-btn').addEventListener('click', () => loadAgotados(true));
+document.getElementById('sync-btn').addEventListener('click', () => {
+  const active = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if (active === 'clientes') { clientesLoaded = true; loadPedidos(); toast('Pedidos actualizados', 'ok'); }
+  else loadAgotados(true);
+});
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
+let clientesLoaded = false;
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'clientes' && !clientesLoaded) {
+      clientesLoaded = true;
+      loadPedidos();
+    }
   });
 });
 
@@ -540,6 +607,85 @@ function toast(msg, type) {
   el.className = `toast ${type} show`;
   toastTimer = setTimeout(() => { el.className = 'toast'; }, 2600);
 }
+
+// ── Clientes ─────────────────────────────────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzC0ejdZ_5NwkqY77s2e_2SQZtUvvBFRr2mf0yx3KT0m8UeH_4lgMVMlXBWuP-Jjd39/exec';
+let allPedidos = [];
+let clDays = 1;
+
+const fmtCOP = n => {
+  const num = typeof n === 'number' ? n : parseFloat(String(n).replace(/[^\d.]/g, '')) || 0;
+  return '$' + num.toLocaleString('es-CO');
+};
+
+async function loadPedidos() {
+  try {
+    const r = await fetch(GAS_URL + '?action=getPedidos&days=30', { redirect: 'follow', signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    allPedidos = (d.pedidos || []).reverse(); // más reciente primero
+    renderClientes();
+  } catch (e) {
+    document.getElementById('cl-list').innerHTML = '<div class="cl-empty">No se pudo cargar — ' + (e.message || 'sin conexión') + '</div>';
+  }
+}
+
+function renderClientes() {
+  const hoy = new Date();
+  const cutoff = new Date(hoy);
+  cutoff.setDate(hoy.getDate() - (clDays - 1));
+  cutoff.setHours(0, 0, 0, 0);
+
+  const pedidos = allPedidos.filter(p => {
+    if (clDays >= 30) return true;
+    const f = p.fecha ? new Date(String(p.fecha).split('T')[0]) : null;
+    return f && f >= cutoff;
+  });
+
+  const total = pedidos.reduce((s, p) => s + (parseFloat(String(p.total).replace(/[^\d.]/g, '')) || 0), 0);
+  const avg   = pedidos.length ? total / pedidos.length : 0;
+
+  document.getElementById('cl-cnt').textContent = pedidos.length;
+  document.getElementById('cl-rev').textContent = pedidos.length ? fmtCOP(total) : '—';
+  document.getElementById('cl-avg').textContent = pedidos.length ? fmtCOP(avg)   : '—';
+
+  if (!pedidos.length) {
+    document.getElementById('cl-list').innerHTML = '<div class="cl-empty">Sin pedidos en este período</div>';
+    return;
+  }
+
+  document.getElementById('cl-list').innerHTML = pedidos.map(p => {
+    const tipo  = String(p.tipo || '').toLowerCase();
+    const esD   = tipo.includes('domicilio') || tipo.includes('delivery') || tipo.includes('envío');
+    const hora  = String(p.hora || '').slice(0, 5) || '—';
+    const nombre = p.nombre || 'Sin nombre';
+    const desc  = String(p.pedido || '').slice(0, 55) + (String(p.pedido || '').length > 55 ? '…' : '');
+    const barrio = p.barrio ? `<span class="pedido-barrio">${p.barrio}</span>` : '';
+    const pago  = p.pago   ? `<div class="pago-badge">${p.pago}</div>` : '';
+    return `<div class="pedido-row">
+      <div class="pedido-time">${hora}</div>
+      <div class="pedido-body">
+        <div class="pedido-nombre">${nombre}</div>
+        <div class="pedido-meta">
+          <span class="tipo-badge ${esD ? 'delivery' : 'local'}">${esD ? '🛵 Domicilio' : '🏠 Local'}</span>
+          ${barrio}
+        </div>
+        ${desc ? `<div class="pedido-desc">${desc}</div>` : ''}
+        ${pago}
+      </div>
+      <div class="pedido-total">${fmtCOP(p.total)}</div>
+    </div>`;
+  }).join('');
+}
+
+document.querySelectorAll('.cl-filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cl-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    clDays = parseInt(btn.dataset.days);
+    renderClientes();
+  });
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────
 loadAgotados(false);
