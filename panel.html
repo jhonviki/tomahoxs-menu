@@ -649,7 +649,11 @@ function canalIcon(canal) {
 
 function parseFecha(raw) {
   if (!raw) return null;
-  const d = new Date(raw); // maneja "Fri Jun 26 2026 00:00:00 GMT-0500 ..."
+  // ISO strings (YYYY-MM-DD) se parsean como UTC → desfase de 1 día en UTC-5
+  // Forzar hora local para evitar el desfase
+  const iso = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
+  const d = new Date(raw); // "Fri Jun 26 2026 00:00:00 GMT-0500 ..." tiene TZ explícita
   return isNaN(d) ? null : d;
 }
 function parseHora(raw) {
