@@ -264,6 +264,16 @@
       letter-spacing: .04em; color: var(--ghost);
     }
     .cl-empty { text-align: center; padding: 2rem; color: var(--ghost); font-size: .83rem; }
+
+    /* ── Canal icons ─────────────────────────────────────── */
+    .canal-icon {
+      width: 20px; height: 20px; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: .7rem; font-weight: 800;
+    }
+    .canal-wa { background: #25D366; color: #fff; }
+    .canal-ig { background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color: #fff; }
+    .canal-fb { background: #1877F2; color: #fff; }
   </style>
 </head>
 <body>
@@ -630,6 +640,13 @@ async function loadPedidos() {
   }
 }
 
+function canalIcon(canal) {
+  const c = String(canal || '').toLowerCase();
+  if (c.includes('instagram') || c === 'ig') return '<div class="canal-icon canal-ig">IG</div>';
+  if (c.includes('facebook') || c === 'fb') return '<div class="canal-icon canal-fb">FB</div>';
+  return '<div class="canal-icon canal-wa">WA</div>';
+}
+
 function parseFecha(raw) {
   if (!raw) return null;
   const d = new Date(raw); // maneja "Fri Jun 26 2026 00:00:00 GMT-0500 ..."
@@ -680,6 +697,7 @@ function renderClientes() {
     const pago  = p.pago   ? `<div class="pago-badge">${p.pago}</div>` : '';
     return `<div class="pedido-row">
       <div class="pedido-time">${hora}</div>
+      ${canalIcon(p.canal)}
       <div class="pedido-body">
         <div class="pedido-nombre">${nombre}</div>
         <div class="pedido-meta">
