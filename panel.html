@@ -327,9 +327,9 @@
     <div class="stat-card"><div class="stat-n neu" id="cl-avg">—</div><div class="stat-l">ticket prom.</div></div>
   </div>
   <div class="cl-filter">
-    <button class="cl-filter-btn active" data-days="1">Hoy</button>
+    <button class="cl-filter-btn"        data-days="1">Hoy</button>
     <button class="cl-filter-btn"        data-days="7">7 días</button>
-    <button class="cl-filter-btn"        data-days="30">30 días</button>
+    <button class="cl-filter-btn active" data-days="30">30 días</button>
   </div>
   <div id="cl-list">
     <div class="skel"></div><div class="skel"></div><div class="skel"></div>
@@ -621,7 +621,7 @@ function toast(msg, type) {
 // ── Clientes ─────────────────────────────────────────────────────────────
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzC0ejdZ_5NwkqY77s2e_2SQZtUvvBFRr2mf0yx3KT0m8UeH_4lgMVMlXBWuP-Jjd39/exec';
 let allPedidos = [];
-let clDays = 1;
+let clDays = 30;
 
 const fmtCOP = n => {
   const num = typeof n === 'number' ? n : parseFloat(String(n).replace(/[^\d.]/g, '')) || 0;
