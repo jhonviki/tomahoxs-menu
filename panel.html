@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Panel · Tomahoxs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #cc0000;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --amber:  #f59e0b;
+      --bg:     #0c0906;
+      --card:   rgba(255,245,230,.04);
+      --border: rgba(255,245,230,.08);
+      --text:   #fff5eb;
+      --muted:  #9c8878;
+      --ghost:  #5a4f44;
+      --fb:     'DM Sans', system-ui, sans-serif;
+      --fd:     'Bebas Neue', cursive;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--fb); }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .header {
+      background: rgba(12,9,6,.96);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1rem .6rem;
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .header-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+    .header-brand {
+      font-family: var(--fd);
+      font-size: 1.35rem; letter-spacing: .06em; color: var(--accent);
+    }
+    .header-brand span { color: var(--muted); font-size: .95rem; }
+    .sync-btn {
+      background: none; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--muted); font-family: var(--fb); font-size: .75rem;
+      padding: .3rem .7rem; cursor: pointer; transition: all .2s;
+    }
+    .sync-btn:hover { border-color: var(--muted); color: var(--text); }
+    .sync-btn.spinning { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Tabs ─────────────────────────────────────────── */
+    .tabs { display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex-shrink: 0; background: none;
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: .32rem .9rem; color: var(--muted);
+      font-family: var(--fb); font-size: .82rem; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+    }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── Tab content ─────────────────────────────────── */
+    .tab-content { display: none; padding: 1rem; padding-bottom: 110px; }
+    .tab-content.active { display: block; }
+
+    /* ── Quick stats (menu tab) ──────────────────────── */
+    .stats-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: .5rem; margin-bottom: 1.2rem;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: .6rem .5rem; text-align: center;
+    }
+    .stat-n { font-family: var(--fd); font-size: 1.6rem; line-height: 1; }
+    .stat-n.ok   { color: var(--green); }
+    .stat-n.warn { color: var(--red); }
+    .stat-n.neu  { color: var(--muted); }
+    .stat-l { font-size: .65rem; color: var(--ghost); text-transform: uppercase; letter-spacing: .05em; margin-top: .2rem; }
+
+    /* ── Section group ───────────────────────────────── */
+    .sec-group { margin-bottom: 1.4rem; }
+    .sec-label {
+      font-family: var(--fd); font-size: 1rem; letter-spacing: .08em;
+      color: var(--ghost); text-transform: uppercase;
+      padding-bottom: .4rem; margin-bottom: .3rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Item row ────────────────────────────────────── */
+    .item-row {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .65rem 0;
+      border-bottom: 1px solid rgba(255,245,230,.035);
+      transition: opacity .2s;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-row.is-agotado { opacity: .55; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name {
+      font-size: .88rem; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .item-name .dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--amber); margin-left: .35rem;
+      vertical-align: middle; margin-bottom: 1px;
+    }
+    .item-price { font-size: .73rem; color: var(--muted); margin-top: .1rem; }
+    .item-status {
+      font-size: .68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; flex-shrink: 0; min-width: 52px; text-align: center;
+    }
+    .item-status.ok  { color: var(--green); }
+    .item-status.out { color: var(--red); }
+
+    /* ── Toggle switch ───────────────────────────────── */
+    .toggle {
+      position: relative; width: 50px; height: 27px;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute; inset: 0; border-radius: 14px;
+      background: var(--red); transition: background .22s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--green); }
+    .toggle-thumb {
+      position: absolute; width: 21px; height: 21px; border-radius: 50%;
+      background: #fff; top: 3px; left: 3px;
+      transition: transform .22s cubic-bezier(.34,1.56,.64,1);
+      box-shadow: 0 1px 3px rgba(0,0,0,.45);
+      pointer-events: none;
+    }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(23px); }
+
+    /* ── Save bar ────────────────────────────────────── */
+    .save-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      padding: .9rem 1rem;
+      background: rgba(10,8,6,.97);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      display: flex; gap: .6rem; align-items: center;
+      transform: translateY(100%);
+      transition: transform .32s cubic-bezier(.34,1.56,.64,1);
+      z-index: 200;
+    }
+    .save-bar.visible { transform: translateY(0); }
+    .save-info { flex: 1; font-size: .8rem; color: var(--muted); }
+    .save-info strong { color: var(--amber); }
+    .discard-btn {
+      background: none; border: 1px solid var(--border); border-radius: 9px;
+      padding: .55rem .8rem; color: var(--muted);
+      font-family: var(--fb); font-size: .8rem; cursor: pointer;
+      transition: border-color .2s;
+    }
+    .discard-btn:hover { border-color: var(--muted); }
+    .save-btn {
+      background: var(--green); color: #fff; border: none;
+      border-radius: 9px; padding: .55rem 1.3rem;
+      font-family: var(--fb); font-weight: 700; font-size: .88rem;
+      cursor: pointer; transition: opacity .2s, transform .1s;
+    }
+    .save-btn:active { transform: scale(.97); }
+    .save-btn:disabled { background: var(--ghost); cursor: not-allowed; }
+
+    /* ── Toast ───────────────────────────────────────── */
+    .toast {
+      position: fixed; top: 80px; left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: #1c1512; border: 1px solid var(--border);
+      border-radius: 12px; padding: .55rem 1.1rem;
+      font-size: .83rem; opacity: 0;
+      transition: opacity .25s, transform .25s;
+      pointer-events: none; z-index: 300; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok  { border-color: var(--green); color: var(--green); }
+    .toast.err { border-color: var(--red);   color: var(--red);   }
+    .toast.inf { border-color: var(--amber); color: var(--amber); }
+
+    /* ── Skeleton ────────────────────────────────────── */
+    .skel {
+      background: linear-gradient(90deg, var(--card) 25%, rgba(255,245,230,.07) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px; height: 18px; margin: .45rem 0;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ── Coming soon ─────────────────────────────────── */
+    .coming {
+      text-align: center; padding: 2.5rem 1rem;
+    }
+    .coming-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .coming h2 {
+      font-family: var(--fd); font-size: 1.4rem; letter-spacing: .06em;
+      color: var(--muted); margin-bottom: .5rem;
+    }
+    .coming p { font-size: .82rem; color: var(--ghost); line-height: 1.65; }
+    .coming .badge {
+      display: inline-block; margin-top: .8rem;
+      background: rgba(204,0,0,.12); border: 1px solid rgba(204,0,0,.28);
+      color: #cc6666; border-radius: 20px; padding: .22rem .75rem;
+      font-size: .72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+    }
+    .coming .badge.soon {
+      background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.25);
+      color: #6ee7a0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-brand">PANEL <span>· Tomahoxs</span></div>
+    <button class="sync-btn" id="sync-btn" title="Recargar desde servidor">↻ Sincronizar</button>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="menu"      role="tab">🍔 Menú</button>
+    <button class="tab-btn"        data-tab="clientes"  role="tab">👥 Clientes</button>
+    <button class="tab-btn"        data-tab="conv"      role="tab">💬 Chats</button>
+  </div>
+</div>
+
+<!-- ── Menú Tab ── -->
+<div class="tab-content active" id="tab-menu">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-n ok"  id="stat-disp">—</div>
+      <div class="stat-l">disponibles</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n warn" id="stat-ag">—</div>
+      <div class="stat-l">agotados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n neu"  id="stat-total">—</div>
+      <div class="stat-l">total items</div>
+    </div>
+  </div>
+  <div id="menu-list">
+    <div style="margin-bottom:1.2rem">
+      <div class="skel" style="width:35%;height:13px;margin-bottom:.6rem"></div>
+      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    </div>
+    <div>
+      <div class="skel" style="width:45%;height:13px;margin-bottom:.6rem"></div>
+      <div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Clientes Tab ── -->
+<div class="tab-content" id="tab-clientes">
+  <div class="coming">
+    <div class="coming-icon">👥</div>
+    <h2>CLIENTES</h2>
+    <p>Historial de pedidos por cliente,<br>ticket promedio y frecuencia de visita.</p>
+    <span class="badge soon">Próximamente</span>
+  </div>
+</div>
+
+<!-- ── Chats Tab ── -->
+<div class="tab-content" id="tab-conv">
+  <div class="coming">
+    <div class="coming-icon">💬</div>
+    <h2>CHATS EN VIVO</h2>
+    <p>Ver conversaciones activas, pausar el bot<br>e intervenir directamente con el cliente.</p>
+    <span class="badge">Requiere Meta API</span>
+  </div>
+</div>
+
+<!-- ── Save bar ── -->
+<div class="save-bar" id="save-bar">
+  <div class="save-info"><strong id="changes-count">0</strong> cambios sin guardar</div>
+  <button class="discard-btn" id="discard-btn">Descartar</button>
+  <button class="save-btn"    id="save-btn">Guardar</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────
+const READ_URL  = 'https://primary-production-74bce.up.railway.app/webhook/menu-agotados';
+const WRITE_URL = 'https://primary-production-74bce.up.railway.app/webhook/agotados-update';
+
+// ── Menu data ────────────────────────────────────────────────────────────
+const MENU = {
+  entradas: {
+    label: 'Entradas',
+    items: [
+      { id:'bocaditos',   nombre:'Bocaditos de Reina', precio:28900 },
+      { id:'taquitos',    nombre:'Taquitos Ahumados',  precio:28900 },
+      { id:'tostones',    nombre:'Tostones Ahumados',  precio:19900 },
+      { id:'nachos',      nombre:'Nachos Pulled',      precio:18900 }
+    ]
+  },
+  hamburguesas: {
+    label: 'Hamburguesas',
+    items: [
+      { id:'chic-candy',   nombre:'Chic-Candy',     precio:33900 },
+      { id:'toffee',       nombre:'Toffee',          precio:34900 },
+      { id:'romanoff',     nombre:'Romanoff',        precio:36900 },
+      { id:'welsh',        nombre:'The Welsh',       precio:35900 },
+      { id:'smoky',        nombre:'Smoky',           precio:35900 },
+      { id:'philabrisk',   nombre:'Philabrisk',      precio:33900 },
+      { id:'epik',         nombre:'EPIK',            precio:27900 },
+      { id:'monotov',      nombre:'Monotov',         precio:33900 },
+      { id:'philadelphia', nombre:'Philadelphia',    precio:24900 },
+      { id:'cheese-bacon', nombre:'Cheese Bacon',    precio:24900 },
+      { id:'clasica',      nombre:'Clásica',         precio:22900 }
+    ]
+  },
+  perrito: {
+    label: 'Perrito Ahumado',
+    items: [
+      { id:'perrito', nombre:'Perrito Ahumado', precio:35900 }
+    ]
+  },
+  barril: {
+    label: 'Barril',
+    items: [
+      { id:'chicharron', nombre:'Chicharrón 300g', precio:54900 },
+      { id:'costilla',   nombre:'Costilla 450g',   precio:59900 }
+    ]
+  },
+  papas: {
+    label: 'Papas',
+    items: [
+      { id:'pulled-papas', nombre:'Pulled Papas', precio:29900 },
+      { id:'papas-solas',  nombre:'Papas Solas',  precio:5900  }
+    ]
+  },
+  cortes: {
+    label: 'Carnes',
+    items: [
+      { id:'punta-anca', nombre:'Punta de Anca 250g',  precio:59900 },
+      { id:'churrasco',  nombre:'Churrasco 250g',       precio:54900 },
+      { id:'solomo',     nombre:'Solomo 250g',          precio:35900 },
+      { id:'pincho',     nombre:'Pincho de Pollo 250g', precio:29900 }
+    ]
+  },
+  bebidas: {
+    label: 'Bebidas',
+    items: [
+      { id:'gaseosa',     nombre:'Gaseosas',          precio:5900  },
+      { id:'aguila',      nombre:'Águila / Pilsen',    precio:6900  },
+      { id:'club-col',    nombre:'Club Colombia',      precio:7900  },
+      { id:'cerveza-imp', nombre:'Corona / Heineken',  precio:9900  },
+      { id:'michelada-s', nombre:'Soda Michelada',    precio:9900  },
+      { id:'michelada-c', nombre:'Cerveza Michelada', precio:11900 }
+    ]
+  }
+};
+const SECTION_ORDER = ['entradas','hamburguesas','perrito','barril','papas','cortes','bebidas'];
+const fmt = n => '$' + n.toLocaleString('es-CO');
+
+// ── State ────────────────────────────────────────────────────────────────
+let serverAgotados = new Set(); // confirmed on server
+let localAgotados  = new Set(); // working copy
+
+function isAgotado(item, set) {
+  const idL  = item.id.toLowerCase().replace(/-/g, ' ');
+  const nomL = item.nombre.toLowerCase();
+  for (const a of set) {
+    const aL = a.toLowerCase().trim();
+    if (!aL) continue;
+    if (idL === aL || idL.includes(aL) || aL.includes(idL)
+      || nomL.includes(aL) || aL.includes(nomL.split(' ')[0])) return true;
+  }
+  return false;
+}
+
+function findItem(id) {
+  for (const k of SECTION_ORDER) {
+    const f = MENU[k]?.items.find(i => i.id === id);
+    if (f) return f;
+  }
+  return null;
+}
+
+function countChanges() {
+  let n = 0;
+  for (const k of SECTION_ORDER)
+    for (const item of (MENU[k]?.items || []))
+      if (isAgotado(item, localAgotados) !== isAgotado(item, serverAgotados)) n++;
+  return n;
+}
+
+function allItems() {
+  return SECTION_ORDER.flatMap(k => MENU[k]?.items || []);
+}
+
+// ── Render ───────────────────────────────────────────────────────────────
+function render() {
+  const total  = allItems().length;
+  const agCnt  = allItems().filter(i => isAgotado(i, localAgotados)).length;
+  const dispCnt = total - agCnt;
+  document.getElementById('stat-disp').textContent  = dispCnt;
+  document.getElementById('stat-ag').textContent    = agCnt;
+  document.getElementById('stat-total').textContent = total;
+
+  document.getElementById('menu-list').innerHTML = SECTION_ORDER.map(k => {
+    const s = MENU[k]; if (!s) return '';
+    const rows = s.items.map(item => {
+      const ag      = isAgotado(item, localAgotados);
+      const changed = ag !== isAgotado(item, serverAgotados);
+      return `<div class="item-row ${ag ? 'is-agotado' : ''}">
+        <div class="item-info">
+          <div class="item-name">${item.nombre}${changed ? '<span class="dot"></span>' : ''}</div>
+          <div class="item-price">${fmt(item.precio)}</div>
+        </div>
+        <div class="item-status ${ag ? 'out' : 'ok'}">${ag ? '✗ Agot.' : '✓ Disp.'}</div>
+        <label class="toggle" title="${ag ? 'Marcar disponible' : 'Marcar agotado'}">
+          <input type="checkbox" data-id="${item.id}" ${ag ? '' : 'checked'}>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>`;
+    }).join('');
+    return `<div class="sec-group">
+      <div class="sec-label">${s.label}</div>${rows}
+    </div>`;
+  }).join('');
+
+  // bind toggles (no inline handlers — CSP safe)
+  document.querySelectorAll('#menu-list input[type=checkbox]').forEach(el => {
+    el.addEventListener('change', () => onToggle(el.dataset.id, el.checked));
+  });
+
+  const n = countChanges();
+  document.getElementById('changes-count').textContent = n;
+  document.getElementById('save-bar').classList.toggle('visible', n > 0);
+}
+
+// ── Toggle ───────────────────────────────────────────────────────────────
+function onToggle(id, disponible) {
+  const item = findItem(id);
+  if (!item) return;
+  if (disponible) {
+    // remove all entries matching this item
+    for (const a of [...localAgotados])
+      if (matchesEntry(a, item)) localAgotados.delete(a);
+  } else {
+    localAgotados.add(item.id);
+  }
+  render();
+}
+
+function matchesEntry(a, item) {
+  const aL  = a.toLowerCase().trim();
+  const idL = item.id.toLowerCase().replace(/-/g, ' ');
+  const nom = item.nombre.toLowerCase();
+  return idL === aL || idL.includes(aL) || aL.includes(idL)
+    || nom.includes(aL) || aL.includes(nom.split(' ')[0]);
+}
+
+// ── Load ─────────────────────────────────────────────────────────────────
+async function loadAgotados(showSpinner) {
+  if (showSpinner) {
+    const btn = document.getElementById('sync-btn');
+    btn.classList.add('spinning');
+  }
+  try {
+    const r = await fetch(READ_URL, { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const d    = await r.json();
+      const list = d.agotados || d || [];
+      serverAgotados = new Set(Array.isArray(list) ? list : []);
+      localAgotados  = new Set(serverAgotados);
+      if (showSpinner) toast('Datos actualizados', 'ok');
+    } else {
+      if (showSpinner) toast('Error al sincronizar', 'err');
+    }
+  } catch {
+    if (showSpinner) toast('Sin conexión al servidor', 'err');
+  }
+  document.getElementById('sync-btn').classList.remove('spinning');
+  render();
+}
+
+// ── Save ─────────────────────────────────────────────────────────────────
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const r = await fetch(WRITE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agotados: [...localAgotados] }),
+      signal: AbortSignal.timeout(6000)
+    });
+    if (r.ok) {
+      serverAgotados = new Set(localAgotados);
+      toast('Cambios guardados ✓', 'ok');
+    } else {
+      toast('Error del servidor — intenta de nuevo', 'err');
+    }
+  } catch {
+    toast('Sin conexión — intenta de nuevo', 'err');
+  }
+  btn.disabled = false; btn.textContent = 'Guardar';
+  render();
+});
+
+// ── Discard ───────────────────────────────────────────────────────────────
+document.getElementById('discard-btn').addEventListener('click', () => {
+  localAgotados = new Set(serverAgotados);
+  render();
+  toast('Cambios descartados', 'inf');
+});
+
+// ── Sync button ───────────────────────────────────────────────────────────
+document.getElementById('sync-btn').addEventListener('click', () => loadAgotados(true));
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type) {
+  clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 2600);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadAgotados(false);
+</script>
+</body>
+</html>
