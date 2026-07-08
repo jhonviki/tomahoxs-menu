@@ -376,6 +376,35 @@
     }
     .msg-col { display: flex; flex-direction: column; gap: .25rem; }
     .chats-empty { text-align: center; padding: 2.5rem 1rem; color: var(--ghost); font-size: .83rem; }
+
+    /* ── Reply box ───────────────────────────────────────── */
+    .reply-box {
+      display: flex; gap: .5rem; align-items: flex-end;
+      padding: .6rem 0 .3rem 0; margin-top: .35rem;
+    }
+    .reply-input {
+      flex: 1; background: rgba(255,245,230,.06);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-family: var(--fb); font-size: .82rem;
+      padding: .5rem .7rem; resize: none; min-height: 38px; max-height: 90px;
+      line-height: 1.45;
+    }
+    .reply-input:focus { outline: none; border-color: var(--muted); }
+    .reply-send {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 10px; padding: .5rem .85rem;
+      font-family: var(--fb); font-weight: 700; font-size: .82rem;
+      cursor: pointer; flex-shrink: 0; transition: opacity .2s;
+    }
+    .reply-send:disabled { opacity: .4; cursor: not-allowed; }
+    .reply-send:active { opacity: .75; }
+    .pause-badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      font-size: .65rem; font-weight: 700; padding: .15rem .5rem;
+      border-radius: 10px; letter-spacing: .03em; margin-left: .3rem;
+      background: rgba(245,158,11,.12); color: var(--amber);
+      border: 1px solid rgba(245,158,11,.25);
+    }
   </style>
 </head>
 <body>
@@ -866,7 +895,8 @@ document.querySelectorAll('.cl-filter-btn').forEach(btn => {
 loadAgotados(false);
 
 // ── Bot State (Control + Chats) ───────────────────────────────────────────
-const BOT_STATE_URL = 'https://primary-production-74bce.up.railway.app/webhook/bot-state';
+const BOT_STATE_URL  = 'https://primary-production-74bce.up.railway.app/webhook/bot-state';
+const SEND_MSG_URL   = 'https://primary-production-74bce.up.railway.app/webhook/send-message';
 const BOT_WH_URL    = 'https://primary-production-74bce.up.railway.app/webhook/whatsapp-meta';
 const ADMIN_PHONE   = '573245348148';
 
@@ -988,15 +1018,21 @@ function renderChats(convs) {
         <div class="chat-name">${name}</div>
         <div class="chat-phone">${phone} · ${c.historyLen} msgs</div>
         ${preview ? `<div class="chat-preview">${preview}</div>` : ''}
-        ${lastB  ? `<div class="chat-preview bot-msg">🤖 ${lastB.slice(0,55)}…</div>` : ''}
+        ${lastB   ? `<div class="chat-preview bot-msg">🤖 ${lastB.slice(0,55)}…</div>` : ''}
       </div>
       <div class="chat-time">${fmtTime(c.lastMessageAt)}</div>
     </div>
-    <div class="chat-hist" id="hist-${i}"></div>`;
+    <div class="chat-hist" id="hist-${i}">
+      <div class="msg-col" id="msgs-${i}"></div>
+      <div class="reply-box">
+        <textarea class="reply-input" id="reply-${i}" placeholder="Escribe tu respuesta…" rows="1"></textarea>
+        <button class="reply-send" id="send-${i}" data-phone="${c.phone}">Enviar</button>
+      </div>
+    </div>`;
   }).join('');
 
-  // Store convs for history expansion
   el._convs = convs;
+
   el.querySelectorAll('.chat-item').forEach(item => {
     item.addEventListener('click', () => {
       const idx  = parseInt(item.dataset.idx);
@@ -1012,19 +1048,55 @@ function renderChats(convs) {
       }
       openChat = idx;
       const conv = el._convs[idx];
-      const msgs = conv.history || [];
-      // Need full history — fetch if needed (we only have last msg in summary)
-      // For now render what we have from the summary context
-      if (msgs.length) {
-        hist.innerHTML = `<div class="msg-col">${msgs.slice(-10).map(m =>
-          `<div class="msg-bubble ${m.role === 'user' ? 'user' : 'bot'}">${m.content?.slice(0,200) || ''}</div>`
-        ).join('')}</div>`;
-      } else {
-        hist.innerHTML = '<div style="color:var(--ghost);font-size:.78rem">Sin historial disponible</div>';
-      }
+      renderMsgs(idx, conv.history || []);
       hist.classList.add('open');
     });
   });
+
+  el.querySelectorAll('.reply-send').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx   = parseInt(btn.id.replace('send-', ''));
+      const phone = btn.dataset.phone;
+      const inp   = document.getElementById('reply-' + idx);
+      const msg   = inp.value.trim();
+      if (!msg) return;
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        const r = await fetch(SEND_MSG_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, message: msg })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          inp.value = '';
+          const conv = el._convs[idx];
+          conv.history.push({ role: 'assistant', content: msg });
+          renderMsgs(idx, conv.history);
+          toast('Mensaje enviado ✓', 'ok');
+        } else {
+          toast('Error al enviar', 'err');
+        }
+      } catch { toast('Sin conexión', 'err'); }
+      btn.disabled = false; btn.textContent = 'Enviar';
+    });
+  });
+
+  // auto-resize textareas
+  el.querySelectorAll('.reply-input').forEach(ta => {
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 90) + 'px';
+    });
+  });
+}
+
+function renderMsgs(idx, history) {
+  const el = document.getElementById('msgs-' + idx);
+  if (!el) return;
+  el.innerHTML = history.slice(-12).map(m =>
+    `<div class="msg-bubble ${m.role === 'user' ? 'user' : 'bot'}">${(m.content || '').slice(0, 300)}</div>`
+  ).join('');
+  el.parentElement?.scrollTo(0, el.scrollHeight);
 }
 
 // Load state when Control or Chats tab opens
