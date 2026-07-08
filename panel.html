@@ -638,8 +638,8 @@ let serverAgotados = new Set(); // confirmed on server
 let localAgotados  = new Set(); // working copy
 
 function isAgotado(item, set) {
-  // si tiene agotaId, su estado depende del target
   const checkId = item.agotaId || item.id;
+  if (set.has(checkId)) return true;
   const checkItem = item.agotaId ? (findItem(item.agotaId) || item) : item;
   const idL  = checkId.toLowerCase().replace(/-/g, ' ');
   const nomL = checkItem.nombre.toLowerCase();
