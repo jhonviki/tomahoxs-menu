@@ -278,8 +278,104 @@
       flex-shrink: 0; font-size: .7rem; font-weight: 800;
     }
     .canal-wa { background: #25D366; color: #fff; }
-    .canal-ig { background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color: #fff; }
+    .canal-ig { background: #FFCB08; color: #333; }
     .canal-fb { background: #1877F2; color: #fff; }
+
+    /* ── Control tab ─────────────────────────────────────── */
+    .ctrl-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem; margin-bottom: .85rem;
+    }
+    .ctrl-section-label {
+      font-family: var(--fd); font-size: .75rem; letter-spacing: .1em;
+      color: var(--ghost); text-transform: uppercase; margin-bottom: .75rem;
+    }
+    .ctrl-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .disc-value {
+      font-family: var(--fd); font-size: 2.2rem; color: var(--amber);
+      min-width: 3rem; line-height: 1;
+    }
+    .disc-value.zero { color: var(--ghost); }
+    .disc-input {
+      width: 70px; background: rgba(255,245,230,.06);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: var(--fb); font-size: .9rem;
+      padding: .45rem .6rem; text-align: center;
+      -moz-appearance: textfield;
+    }
+    .disc-input::-webkit-inner-spin-button { display: none; }
+    .disc-input:focus { outline: none; border-color: var(--amber); }
+    .ctrl-btn {
+      border: none; border-radius: 9px; padding: .45rem 1rem;
+      font-family: var(--fb); font-weight: 700; font-size: .82rem;
+      cursor: pointer; transition: opacity .2s, transform .1s;
+    }
+    .ctrl-btn:active { transform: scale(.96); }
+    .ctrl-btn.pri { background: var(--amber); color: #000; }
+    .ctrl-btn.sec { background: rgba(255,245,230,.08); color: var(--muted); border: 1px solid var(--border); }
+    .ctrl-btn.danger { background: var(--red); color: #fff; }
+    .ctrl-btn.success { background: var(--green); color: #fff; }
+    .ctrl-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .bot-status-badge {
+      display: inline-flex; align-items: center; gap: .35rem;
+      font-size: .78rem; font-weight: 700; padding: .3rem .7rem;
+      border-radius: 20px; letter-spacing: .03em;
+    }
+    .bot-status-badge.open  { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+    .bot-status-badge.closed { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.2); }
+    .bcast-area {
+      width: 100%; background: rgba(255,245,230,.04);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: var(--fb); font-size: .82rem;
+      line-height: 1.6; padding: .65rem .75rem; resize: vertical;
+      min-height: 110px; margin-bottom: .6rem;
+    }
+    .bcast-area:focus { outline: none; border-color: var(--muted); }
+    .bcast-note { font-size: .72rem; color: var(--ghost); line-height: 1.5; }
+
+    /* ── Chats tab ───────────────────────────────────────── */
+    .chat-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .8rem 0; border-bottom: 1px solid rgba(255,245,230,.04);
+      cursor: pointer; transition: background .15s;
+    }
+    .chat-item:last-child { border-bottom: none; }
+    .chat-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,245,230,.08); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; font-weight: 700; color: var(--muted);
+      flex-shrink: 0; text-transform: uppercase;
+    }
+    .chat-body { flex: 1; min-width: 0; }
+    .chat-name { font-size: .88rem; font-weight: 700; color: var(--text); }
+    .chat-phone { font-size: .7rem; color: var(--ghost); margin-top: .05rem; }
+    .chat-preview {
+      font-size: .78rem; color: var(--muted); margin-top: .25rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chat-preview.bot-msg { color: var(--ghost); font-style: italic; }
+    .chat-time { font-size: .68rem; color: var(--ghost); flex-shrink: 0; padding-top: .1rem; }
+    .chat-hist {
+      display: none; padding: .75rem 0 .5rem 46px;
+      border-bottom: 1px solid rgba(255,245,230,.06);
+    }
+    .chat-hist.open { display: block; }
+    .msg-bubble {
+      max-width: 82%; padding: .45rem .7rem;
+      border-radius: 10px; font-size: .8rem; line-height: 1.5;
+      margin-bottom: .35rem; word-break: break-word;
+    }
+    .msg-bubble.user {
+      background: rgba(255,245,230,.07); color: var(--text);
+      border-bottom-left-radius: 3px; align-self: flex-start;
+    }
+    .msg-bubble.bot {
+      background: rgba(204,0,0,.15); color: var(--text);
+      border-bottom-right-radius: 3px; margin-left: auto;
+    }
+    .msg-col { display: flex; flex-direction: column; gap: .25rem; }
+    .chats-empty { text-align: center; padding: 2.5rem 1rem; color: var(--ghost); font-size: .83rem; }
   </style>
 </head>
 <body>
@@ -294,6 +390,7 @@
     <button class="tab-btn active" data-tab="menu"      role="tab">🍔 Menú</button>
     <button class="tab-btn"        data-tab="clientes"  role="tab">👥 Clientes</button>
     <button class="tab-btn"        data-tab="conv"      role="tab">💬 Chats</button>
+    <button class="tab-btn"        data-tab="control"   role="tab">⚙️ Bot</button>
   </div>
 </div>
 
@@ -344,12 +441,46 @@
 
 <!-- ── Chats Tab ── -->
 <div class="tab-content" id="tab-conv">
-  <div class="coming">
-    <div class="coming-icon">💬</div>
-    <h2>CHATS EN VIVO</h2>
-    <p>Ver conversaciones activas, pausar el bot<br>e intervenir directamente con el cliente.</p>
-    <span class="badge">Requiere Meta API</span>
+  <div id="chats-list"><div class="chats-empty">Cargando conversaciones…</div></div>
+</div>
+
+<!-- ── Control Tab ── -->
+<div class="tab-content" id="tab-control">
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Descuento activo</div>
+    <div class="ctrl-row">
+      <div class="disc-value zero" id="disc-display">0%</div>
+      <input type="number" id="disc-input" class="disc-input" min="0" max="50" placeholder="%">
+      <button class="ctrl-btn pri" id="disc-apply">Aplicar</button>
+      <button class="ctrl-btn sec" id="disc-off">Quitar</button>
+    </div>
   </div>
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Estado del bot</div>
+    <div class="ctrl-row">
+      <span class="bot-status-badge open" id="bot-badge">● Abierto</span>
+      <button class="ctrl-btn danger" id="bot-close-btn">Cerrar bot</button>
+      <button class="ctrl-btn success" id="bot-open-btn">Abrir bot</button>
+    </div>
+  </div>
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Mensaje de difusión</div>
+    <textarea id="bcast-text" class="bcast-area">Hola 👋 Te escribimos del equipo de Tomahoxs Grill y Ahumados 🔥
+
+Actualizamos nuestro WhatsApp y puede que ya no puedas escribirnos desde el chat anterior. Solo borra ese chat y escríbenos de nuevo al mismo número 📱
+
+Y para celebrar el cambio... 15% de descuento en tu próximo pedido solo por hoy 🎁
+
+Escríbenos "hola" y el descuento se aplica automático al confirmar tu pedido.
+
+¡Nos vemos esta noche! 🍔🔥</textarea>
+    <p class="bcast-note">Copia este texto y envíalo manualmente por WhatsApp a tus contactos. El descuento ya está activo en el bot.</p>
+    <button class="ctrl-btn pri" id="bcast-copy" style="margin-top:.4rem">📋 Copiar mensaje</button>
+  </div>
+
 </div>
 
 <!-- ── Save bar ── -->
@@ -733,6 +864,177 @@ document.querySelectorAll('.cl-filter-btn').forEach(btn => {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 loadAgotados(false);
+
+// ── Bot State (Control + Chats) ───────────────────────────────────────────
+const BOT_STATE_URL = 'https://primary-production-74bce.up.railway.app/webhook/bot-state';
+const BOT_WH_URL    = 'https://primary-production-74bce.up.railway.app/webhook/whatsapp-meta';
+const ADMIN_PHONE   = '573245348148';
+
+function adminCmd(cmd) {
+  return fetch(BOT_WH_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      object: 'whatsapp_business_account',
+      entry: [{ changes: [{ value: {
+        messaging_product: 'whatsapp',
+        contacts: [{ profile: { name: 'Admin' }, wa_id: ADMIN_PHONE }],
+        messages: [{ from: ADMIN_PHONE, id: 'wamid.dash' + Date.now(), type: 'text',
+          text: { body: cmd }, timestamp: String(Math.floor(Date.now()/1000)) }]
+      }}]}]
+    })
+  });
+}
+
+async function loadBotState() {
+  try {
+    const r = await fetch(BOT_STATE_URL, { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) return;
+    const d = await r.json();
+    applyBotState(d);
+    renderChats(d.conversaciones || []);
+  } catch {}
+}
+
+function applyBotState(d) {
+  // Descuento
+  const pct = d.descuento || 0;
+  const el  = document.getElementById('disc-display');
+  el.textContent = pct + '%';
+  el.className   = 'disc-value' + (pct > 0 ? '' : ' zero');
+  // Bot status
+  const badge = document.getElementById('bot-badge');
+  if (d.manualCierre) {
+    badge.textContent = '● Cerrado'; badge.className = 'bot-status-badge closed';
+  } else {
+    badge.textContent = '● Abierto'; badge.className = 'bot-status-badge open';
+  }
+}
+
+// Descuento controls
+document.getElementById('disc-apply').addEventListener('click', async () => {
+  const v = parseInt(document.getElementById('disc-input').value) || 0;
+  if (v < 1 || v > 50) { toast('Ingresa un % entre 1 y 50', 'err'); return; }
+  document.getElementById('disc-apply').disabled = true;
+  await adminCmd('!descuento ' + v);
+  await new Promise(r => setTimeout(r, 1500));
+  await loadBotState();
+  document.getElementById('disc-apply').disabled = false;
+  document.getElementById('disc-input').value = '';
+  toast('Descuento ' + v + '% activado ✓', 'ok');
+});
+
+document.getElementById('disc-off').addEventListener('click', async () => {
+  document.getElementById('disc-off').disabled = true;
+  await adminCmd('!descuento 0');
+  await new Promise(r => setTimeout(r, 1500));
+  await loadBotState();
+  document.getElementById('disc-off').disabled = false;
+  toast('Descuento quitado ✓', 'ok');
+});
+
+// Bot open/close
+document.getElementById('bot-close-btn').addEventListener('click', async () => {
+  if (!confirm('¿Cerrar el bot? Los clientes recibirán mensaje de "estamos cerrados".')) return;
+  await adminCmd('!cerrar');
+  await new Promise(r => setTimeout(r, 1500));
+  await loadBotState();
+  toast('Bot cerrado ✓', 'inf');
+});
+
+document.getElementById('bot-open-btn').addEventListener('click', async () => {
+  await adminCmd('!abrir');
+  await new Promise(r => setTimeout(r, 1500));
+  await loadBotState();
+  toast('Bot abierto ✓', 'ok');
+});
+
+// Broadcast copy
+document.getElementById('bcast-copy').addEventListener('click', () => {
+  const txt = document.getElementById('bcast-text').value;
+  navigator.clipboard.writeText(txt).then(() => toast('Mensaje copiado ✓', 'ok'))
+    .catch(() => toast('Selecciona y copia manualmente', 'inf'));
+});
+
+// ── Chats render ──────────────────────────────────────────────────────────
+let openChat = null;
+
+function fmtTime(ts) {
+  if (!ts) return '';
+  const d   = new Date(ts);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  return sameDay
+    ? d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false })
+    : d.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' });
+}
+
+function renderChats(convs) {
+  const el = document.getElementById('chats-list');
+  if (!convs.length) {
+    el.innerHTML = '<div class="chats-empty">No hay conversaciones activas</div>';
+    return;
+  }
+  el.innerHTML = convs.map((c, i) => {
+    const name    = c.pushname || 'Sin nombre';
+    const initial = name[0].toUpperCase();
+    const phone   = c.phone.replace(/^57/, '');
+    const lastU   = c.lastMsg?.role === 'user'  ? c.lastMsg?.content  : '';
+    const lastB   = c.lastBotMsg?.content || '';
+    const preview = lastU ? lastU.slice(0, 60) : '';
+    return `<div class="chat-item" data-idx="${i}">
+      <div class="chat-avatar">${initial}</div>
+      <div class="chat-body">
+        <div class="chat-name">${name}</div>
+        <div class="chat-phone">${phone} · ${c.historyLen} msgs</div>
+        ${preview ? `<div class="chat-preview">${preview}</div>` : ''}
+        ${lastB  ? `<div class="chat-preview bot-msg">🤖 ${lastB.slice(0,55)}…</div>` : ''}
+      </div>
+      <div class="chat-time">${fmtTime(c.lastMessageAt)}</div>
+    </div>
+    <div class="chat-hist" id="hist-${i}"></div>`;
+  }).join('');
+
+  // Store convs for history expansion
+  el._convs = convs;
+  el.querySelectorAll('.chat-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const idx  = parseInt(item.dataset.idx);
+      const hist = document.getElementById('hist-' + idx);
+      if (openChat === idx) {
+        hist.classList.remove('open');
+        openChat = null;
+        return;
+      }
+      if (openChat !== null) {
+        const old = document.getElementById('hist-' + openChat);
+        if (old) old.classList.remove('open');
+      }
+      openChat = idx;
+      const conv = el._convs[idx];
+      const msgs = conv.history || [];
+      // Need full history — fetch if needed (we only have last msg in summary)
+      // For now render what we have from the summary context
+      if (msgs.length) {
+        hist.innerHTML = `<div class="msg-col">${msgs.slice(-10).map(m =>
+          `<div class="msg-bubble ${m.role === 'user' ? 'user' : 'bot'}">${m.content?.slice(0,200) || ''}</div>`
+        ).join('')}</div>`;
+      } else {
+        hist.innerHTML = '<div style="color:var(--ghost);font-size:.78rem">Sin historial disponible</div>';
+      }
+      hist.classList.add('open');
+    });
+  });
+}
+
+// Load state when Control or Chats tab opens
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.tab === 'control' || btn.dataset.tab === 'conv') {
+      loadBotState();
+    }
+  });
+});
 </script>
 </body>
 </html>
