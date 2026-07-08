@@ -1021,11 +1021,14 @@ function renderChats(convs) {
   el.innerHTML = convs.map((c, i) => {
     const name    = c.pushname || 'Sin nombre';
     const initial = name[0].toUpperCase();
-    const isWa    = c.canal !== 'instagram';
+    const isWa    = c.canal === 'whatsapp';
+    const isFb    = c.canal === 'facebook';
     const canalIcon = isWa
       ? `<span style="color:#25D366;font-size:.8rem;">WA</span>`
-      : `<span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:.8rem;">IG</span>`;
-    const phoneLabel = isWa ? c.phone.replace(/^57/, '') : 'DM Instagram';
+      : isFb
+        ? `<span style="color:#1877F2;font-size:.8rem;">FB</span>`
+        : `<span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:.8rem;">IG</span>`;
+    const phoneLabel = isWa ? c.phone.replace(/^57/, '') : (isFb ? 'DM Facebook' : 'DM Instagram');
     const lastU   = c.lastMsg?.role === 'user'  ? c.lastMsg?.content  : '';
     const lastB   = c.lastBotMsg?.content || '';
     const lastHist = !lastU && c.history?.length ? c.history[c.history.length-1] : null;
