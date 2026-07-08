@@ -895,10 +895,11 @@ document.querySelectorAll('.cl-filter-btn').forEach(btn => {
 loadAgotados(false);
 
 // ── Bot State (Control + Chats) ───────────────────────────────────────────
-const BOT_STATE_URL  = 'https://primary-production-74bce.up.railway.app/webhook/bot-state';
-const SEND_MSG_URL   = 'https://primary-production-74bce.up.railway.app/webhook/send-message';
-const BOT_WH_URL    = 'https://primary-production-74bce.up.railway.app/webhook/whatsapp-meta';
-const ADMIN_PHONE   = '573245348148';
+const BOT_STATE_URL       = 'https://primary-production-74bce.up.railway.app/webhook/bot-state';
+const MESSENGER_STATE_URL = 'https://primary-production-74bce.up.railway.app/webhook/messenger-state';
+const SEND_MSG_URL        = 'https://primary-production-74bce.up.railway.app/webhook/send-message';
+const BOT_WH_URL         = 'https://primary-production-74bce.up.railway.app/webhook/whatsapp-meta';
+const ADMIN_PHONE        = '573245348148';
 
 function adminCmd(cmd) {
   return fetch(BOT_WH_URL, {
@@ -918,12 +919,24 @@ function adminCmd(cmd) {
 
 async function loadBotState() {
   try {
-    const r = await fetch(BOT_STATE_URL, { signal: AbortSignal.timeout(5000) });
-    if (!r.ok) return;
-    const d = await r.json();
-    applyBotState(d);
-    renderChats(d.conversaciones || []);
-  } catch {}
+    const [rWa, rMs] = await Promise.allSettled([
+      fetch(BOT_STATE_URL,       { signal: AbortSignal.timeout(5000) }),
+      fetch(MESSENGER_STATE_URL, { signal: AbortSignal.timeout(5000) })
+    ]);
+    let waData = { conversaciones: [], descuento: 0 };
+    let msData = { conversations: [] };
+    if (rWa.status === 'fulfilled' && rWa.value.ok) waData = await rWa.value.json();
+    if (rMs.status === 'fulfilled' && rMs.value.ok) msData = await rMs.value.json();
+    applyBotState(waData);
+    const waConvs = (waData.conversaciones || []).map(c => ({ ...c, canal: c.canal || 'whatsapp' }));
+    const msConvs = (msData.conversations || []).map(c => ({
+      phone: c.id, pushname: c.pushname, lastMessageAt: c.lastMessageAt,
+      history: c.history || [], historyLen: (c.history || []).length,
+      canal: 'instagram'
+    }));
+    const all = [...waConvs, ...msConvs].sort((a,b) => (b.lastMessageAt||0) - (a.lastMessageAt||0));
+    renderChats(all);
+  } catch(e) { console.error('loadBotState:', e); }
 }
 
 function applyBotState(d) {
@@ -1008,15 +1021,21 @@ function renderChats(convs) {
   el.innerHTML = convs.map((c, i) => {
     const name    = c.pushname || 'Sin nombre';
     const initial = name[0].toUpperCase();
-    const phone   = c.phone.replace(/^57/, '');
+    const isWa    = c.canal !== 'instagram';
+    const canalIcon = isWa
+      ? `<span style="color:#25D366;font-size:.8rem;">WA</span>`
+      : `<span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:.8rem;">IG</span>`;
+    const phoneLabel = isWa ? c.phone.replace(/^57/, '') : 'DM Instagram';
     const lastU   = c.lastMsg?.role === 'user'  ? c.lastMsg?.content  : '';
     const lastB   = c.lastBotMsg?.content || '';
-    const preview = lastU ? lastU.slice(0, 60) : '';
+    const lastHist = !lastU && c.history?.length ? c.history[c.history.length-1] : null;
+    const preview = lastU ? lastU.slice(0, 60) : (lastHist?.role === 'user' ? lastHist.content.slice(0,60) : '');
+    const histLen = c.historyLen ?? c.history?.length ?? 0;
     return `<div class="chat-item" data-idx="${i}">
       <div class="chat-avatar">${initial}</div>
       <div class="chat-body">
-        <div class="chat-name">${name}</div>
-        <div class="chat-phone">${phone} · ${c.historyLen} msgs</div>
+        <div class="chat-name">${name} ${canalIcon}</div>
+        <div class="chat-phone">${phoneLabel} · ${histLen} msgs</div>
         ${preview ? `<div class="chat-preview">${preview}</div>` : ''}
         ${lastB   ? `<div class="chat-preview bot-msg">🤖 ${lastB.slice(0,55)}…</div>` : ''}
       </div>
@@ -1025,8 +1044,8 @@ function renderChats(convs) {
     <div class="chat-hist" id="hist-${i}">
       <div class="msg-col" id="msgs-${i}"></div>
       <div class="reply-box">
-        <textarea class="reply-input" id="reply-${i}" placeholder="Escribe tu respuesta…" rows="1"></textarea>
-        <button class="reply-send" id="send-${i}" data-phone="${c.phone}">Enviar</button>
+        <textarea class="reply-input" id="reply-${i}" placeholder="${isWa ? 'Escribe tu respuesta…' : 'Responder desde Meta Business Suite'}" rows="1" ${isWa ? '' : 'disabled'}></textarea>
+        <button class="reply-send" id="send-${i}" data-phone="${c.phone}" ${isWa ? '' : 'disabled style="opacity:.4"'}>Enviar</button>
       </div>
     </div>`;
   }).join('');
