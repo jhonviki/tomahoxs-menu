@@ -333,6 +333,32 @@
     .bcast-area:focus { outline: none; border-color: var(--muted); }
     .bcast-note { font-size: .72rem; color: var(--ghost); line-height: 1.5; }
 
+    /* ── Canal sub-tabs ─────────────────────────────────── */
+    .canal-tabs {
+      display: flex; gap: .5rem; padding: .75rem 0 .5rem;
+      border-bottom: 1px solid var(--border); margin-bottom: .25rem;
+    }
+    .canal-tab {
+      display: flex; align-items: center; gap: .35rem;
+      padding: .35rem .75rem; border-radius: 20px; cursor: pointer;
+      font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--ghost);
+      transition: all .15s;
+    }
+    .canal-tab.active { border-color: transparent; color: #fff; }
+    .canal-tab.wa.active  { background: rgba(37,211,102,.2);  color: #25D366; border-color: rgba(37,211,102,.3); }
+    .canal-tab.ig.active  { background: rgba(220,39,67,.18);  color: #f77737; border-color: rgba(220,39,67,.3); }
+    .canal-tab.fb.active  { background: rgba(24,119,242,.18); color: #1877F2; border-color: rgba(24,119,242,.3); }
+    .canal-badge {
+      background: rgba(255,245,230,.12); color: var(--muted);
+      border-radius: 10px; padding: .05rem .42rem;
+      font-size: .68rem; font-weight: 700;
+    }
+    .canal-tab.wa.active .canal-badge { background: rgba(37,211,102,.25); color: #25D366; }
+    .canal-tab.ig.active .canal-badge { background: rgba(220,39,67,.25);  color: #f77737; }
+    .canal-tab.fb.active .canal-badge { background: rgba(24,119,242,.25); color: #1877F2; }
+
     /* ── Chats tab ───────────────────────────────────────── */
     .chat-item {
       display: flex; align-items: flex-start; gap: .75rem;
@@ -470,6 +496,11 @@
 
 <!-- ── Chats Tab ── -->
 <div class="tab-content" id="tab-conv">
+  <div class="canal-tabs" id="canal-tabs">
+    <button class="canal-tab wa active" data-canal="whatsapp">WA <span class="canal-badge" id="badge-wa">0</span></button>
+    <button class="canal-tab ig"        data-canal="instagram">IG <span class="canal-badge" id="badge-ig">0</span></button>
+    <button class="canal-tab fb"        data-canal="facebook">FB <span class="canal-badge" id="badge-fb">0</span></button>
+  </div>
   <div id="chats-list"><div class="chats-empty">Cargando conversaciones…</div></div>
 </div>
 
@@ -928,14 +959,21 @@ async function loadBotState() {
     if (rWa.status === 'fulfilled' && rWa.value.ok) waData = await rWa.value.json();
     if (rMs.status === 'fulfilled' && rMs.value.ok) msData = await rMs.value.json();
     applyBotState(waData);
-    const waConvs = (waData.conversaciones || []).map(c => ({ ...c, canal: c.canal || 'whatsapp' }));
+    const waConvs = (waData.conversaciones || []).map(c => ({ ...c, canal: 'whatsapp' }));
     const msConvs = (msData.conversations || []).map(c => ({
       phone: c.id, pushname: c.pushname, lastMessageAt: c.lastMessageAt,
       history: c.history || [], historyLen: (c.history || []).length,
-      canal: 'instagram'
+      canal: c.canal || 'instagram'
     }));
-    const all = [...waConvs, ...msConvs].sort((a,b) => (b.lastMessageAt||0) - (a.lastMessageAt||0));
-    renderChats(all);
+    allConvs = [...waConvs, ...msConvs].sort((a,b) => (b.lastMessageAt||0) - (a.lastMessageAt||0));
+    // Update badges
+    ['whatsapp','instagram','facebook'].forEach(canal => {
+      const id = { whatsapp: 'badge-wa', instagram: 'badge-ig', facebook: 'badge-fb' }[canal];
+      const count = allConvs.filter(c => (c.canal||'whatsapp') === canal).length;
+      const el = document.getElementById(id);
+      if (el) el.textContent = count;
+    });
+    renderChats(allConvs.filter(c => (c.canal || 'whatsapp') === activeCanal));
   } catch(e) { console.error('loadBotState:', e); }
 }
 
@@ -1001,6 +1039,18 @@ document.getElementById('bcast-copy').addEventListener('click', () => {
 
 // ── Chats render ──────────────────────────────────────────────────────────
 let openChat = null;
+let allConvs = [];
+let activeCanal = 'whatsapp';
+
+document.getElementById('canal-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.canal-tab');
+  if (!btn) return;
+  document.querySelectorAll('.canal-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeCanal = btn.dataset.canal;
+  openChat = null;
+  renderChats(allConvs.filter(c => (c.canal || 'whatsapp') === activeCanal));
+});
 
 function fmtTime(ts) {
   if (!ts) return '';
@@ -1021,13 +1071,8 @@ function renderChats(convs) {
   el.innerHTML = convs.map((c, i) => {
     const name    = c.pushname || 'Sin nombre';
     const initial = name[0].toUpperCase();
-    const isWa    = c.canal === 'whatsapp';
-    const isFb    = c.canal === 'facebook';
-    const canalIcon = isWa
-      ? `<span style="color:#25D366;font-size:.8rem;">WA</span>`
-      : isFb
-        ? `<span style="color:#1877F2;font-size:.8rem;">FB</span>`
-        : `<span style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:.8rem;">IG</span>`;
+    const isWa = c.canal === 'whatsapp';
+    const isFb = c.canal === 'facebook';
     const phoneLabel = isWa ? c.phone.replace(/^57/, '') : (isFb ? 'DM Facebook' : 'DM Instagram');
     const lastU   = c.lastMsg?.role === 'user'  ? c.lastMsg?.content  : '';
     const lastB   = c.lastBotMsg?.content || '';
@@ -1037,7 +1082,7 @@ function renderChats(convs) {
     return `<div class="chat-item" data-idx="${i}">
       <div class="chat-avatar">${initial}</div>
       <div class="chat-body">
-        <div class="chat-name">${name} ${canalIcon}</div>
+        <div class="chat-name">${name}</div>
         <div class="chat-phone">${phoneLabel} · ${histLen} msgs</div>
         ${preview ? `<div class="chat-preview">${preview}</div>` : ''}
         ${lastB   ? `<div class="chat-preview bot-msg">🤖 ${lastB.slice(0,55)}…</div>` : ''}
