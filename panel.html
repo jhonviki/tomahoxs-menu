@@ -402,6 +402,11 @@
     }
     .msg-col { display: flex; flex-direction: column; gap: .25rem; }
     .chats-empty { text-align: center; padding: 2.5rem 1rem; color: var(--ghost); font-size: .83rem; }
+    .chat-item.unread .chat-name { color: #fff; }
+    .unread-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0; margin-top: .35rem;
+    }
 
     /* ── Reply box ───────────────────────────────────────── */
     .reply-box {
@@ -442,15 +447,15 @@
     <button class="sync-btn" id="sync-btn" title="Recargar desde servidor">↻ Sincronizar</button>
   </div>
   <div class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="menu"      role="tab">🍔 Menú</button>
+    <button class="tab-btn active" data-tab="conv"      role="tab">💬 Chats</button>
+    <button class="tab-btn"        data-tab="menu"      role="tab">🍔 Menú</button>
     <button class="tab-btn"        data-tab="clientes"  role="tab">👥 Clientes</button>
-    <button class="tab-btn"        data-tab="conv"      role="tab">💬 Chats</button>
-    <button class="tab-btn"        data-tab="control"   role="tab">⚙️ Bot</button>
+    <button class="tab-btn"        data-tab="control"   role="tab">⚙️ Config</button>
   </div>
 </div>
 
 <!-- ── Menú Tab ── -->
-<div class="tab-content active" id="tab-menu">
+<div class="tab-content" id="tab-menu">
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-n ok"  id="stat-disp">—</div>
@@ -495,7 +500,7 @@
 </div>
 
 <!-- ── Chats Tab ── -->
-<div class="tab-content" id="tab-conv">
+<div class="tab-content active" id="tab-conv">
   <div class="canal-tabs" id="canal-tabs">
     <button class="canal-tab wa active" data-canal="whatsapp">WA <span class="canal-badge" id="badge-wa">0</span></button>
     <button class="canal-tab ig"        data-canal="instagram">IG <span class="canal-badge" id="badge-ig">0</span></button>
@@ -966,13 +971,7 @@ async function loadBotState() {
       canal: c.canal || 'instagram'
     }));
     allConvs = [...waConvs, ...msConvs].sort((a,b) => (b.lastMessageAt||0) - (a.lastMessageAt||0));
-    // Update badges
-    ['whatsapp','instagram','facebook'].forEach(canal => {
-      const id = { whatsapp: 'badge-wa', instagram: 'badge-ig', facebook: 'badge-fb' }[canal];
-      const count = allConvs.filter(c => (c.canal||'whatsapp') === canal).length;
-      const el = document.getElementById(id);
-      if (el) el.textContent = count;
-    });
+    updateBadges();
     renderChats(allConvs.filter(c => (c.canal || 'whatsapp') === activeCanal));
   } catch(e) { console.error('loadBotState:', e); }
 }
@@ -1042,6 +1041,26 @@ let openChat = null;
 let allConvs = [];
 let activeCanal = 'whatsapp';
 
+function updateBadges() {
+  ['whatsapp','instagram','facebook'].forEach(canal => {
+    const id = { whatsapp: 'badge-wa', instagram: 'badge-ig', facebook: 'badge-fb' }[canal];
+    const unread = allConvs.filter(c => (c.canal||'whatsapp') === canal && isUnread(c)).length;
+    const el = document.getElementById(id);
+    if (el) { el.textContent = unread || ''; el.style.display = unread ? '' : 'none'; }
+  });
+}
+
+function getSeenAt() {
+  try { return JSON.parse(localStorage.getItem('tmx_seen') || '{}'); } catch { return {}; }
+}
+function markSeen(phone) {
+  const s = getSeenAt(); s[phone] = Date.now();
+  localStorage.setItem('tmx_seen', JSON.stringify(s));
+}
+function isUnread(conv) {
+  return (conv.lastMessageAt || 0) > (getSeenAt()[conv.phone] || 0);
+}
+
 document.getElementById('canal-tabs').addEventListener('click', e => {
   const btn = e.target.closest('.canal-tab');
   if (!btn) return;
@@ -1079,7 +1098,8 @@ function renderChats(convs) {
     const lastHist = !lastU && c.history?.length ? c.history[c.history.length-1] : null;
     const preview = lastU ? lastU.slice(0, 60) : (lastHist?.role === 'user' ? lastHist.content.slice(0,60) : '');
     const histLen = c.historyLen ?? c.history?.length ?? 0;
-    return `<div class="chat-item" data-idx="${i}">
+    const unread = isUnread(c);
+    return `<div class="chat-item${unread ? ' unread' : ''}" data-idx="${i}">
       <div class="chat-avatar">${initial}</div>
       <div class="chat-body">
         <div class="chat-name">${name}</div>
@@ -1087,7 +1107,10 @@ function renderChats(convs) {
         ${preview ? `<div class="chat-preview">${preview}</div>` : ''}
         ${lastB   ? `<div class="chat-preview bot-msg">🤖 ${lastB.slice(0,55)}…</div>` : ''}
       </div>
-      <div class="chat-time">${fmtTime(c.lastMessageAt)}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;flex-shrink:0">
+        <div class="chat-time">${fmtTime(c.lastMessageAt)}</div>
+        ${unread ? '<div class="unread-dot"></div>' : ''}
+      </div>
     </div>
     <div class="chat-hist" id="hist-${i}">
       <div class="msg-col" id="msgs-${i}"></div>
@@ -1115,6 +1138,9 @@ function renderChats(convs) {
       }
       openChat = idx;
       const conv = el._convs[idx];
+      markSeen(conv.phone);
+      updateBadges();
+      item.classList.remove('unread');
       renderMsgs(idx, conv.history || []);
       hist.classList.add('open');
     });
@@ -1169,11 +1195,11 @@ function renderMsgs(idx, history) {
 // Load state when Control or Chats tab opens
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    if (btn.dataset.tab === 'control' || btn.dataset.tab === 'conv') {
-      loadBotState();
-    }
+    if (btn.dataset.tab === 'control' || btn.dataset.tab === 'conv') loadBotState();
   });
 });
+// Auto-load on start since Chats is the default tab
+loadBotState();
 </script>
 </body>
 </html>
