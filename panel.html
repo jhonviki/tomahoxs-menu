@@ -624,6 +624,7 @@ const MENU = {
       { id:'gaseosa',     nombre:'Gaseosas',          precio:5900  },
       { id:'aguila',      nombre:'Águila / Pilsen',    precio:6900  },
       { id:'club-col',    nombre:'Club Colombia',      precio:7900  },
+      { id:'cerveza-imp', nombre:'Corona / Heineken',  precio:9900, agotaId:'michelada-s' },
       { id:'michelada-s', nombre:'Soda Michelada',    precio:9900  },
       { id:'michelada-c', nombre:'Cerveza Michelada', precio:11900 }
     ]
@@ -637,8 +638,11 @@ let serverAgotados = new Set(); // confirmed on server
 let localAgotados  = new Set(); // working copy
 
 function isAgotado(item, set) {
-  const idL  = item.id.toLowerCase().replace(/-/g, ' ');
-  const nomL = item.nombre.toLowerCase();
+  // si tiene agotaId, su estado depende del target
+  const checkId = item.agotaId || item.id;
+  const checkItem = item.agotaId ? (findItem(item.agotaId) || item) : item;
+  const idL  = checkId.toLowerCase().replace(/-/g, ' ');
+  const nomL = checkItem.nombre.toLowerCase();
   for (const a of set) {
     const aL = a.toLowerCase().trim();
     if (!aL) continue;
@@ -714,12 +718,14 @@ function render() {
 function onToggle(id, disponible) {
   const item = findItem(id);
   if (!item) return;
+  const targetId = item.agotaId || item.id;
+  const target   = item.agotaId ? findItem(item.agotaId) : item;
   if (disponible) {
-    // remove all entries matching this item
-    for (const a of [...localAgotados])
-      if (matchesEntry(a, item)) localAgotados.delete(a);
+    localAgotados.delete(targetId);
+    if (target) for (const a of [...localAgotados])
+      if (matchesEntry(a, target)) localAgotados.delete(a);
   } else {
-    localAgotados.add(item.id);
+    localAgotados.add(targetId);
   }
   render();
 }
