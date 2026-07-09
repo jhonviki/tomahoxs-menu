@@ -941,6 +941,18 @@ const MESSENGER_STATE_URL = 'https://primary-production-74bce.up.railway.app/web
 const SEND_MSG_URL        = 'https://primary-production-74bce.up.railway.app/webhook/send-message';
 const BOT_WH_URL         = 'https://primary-production-74bce.up.railway.app/webhook/whatsapp-meta';
 const ADMIN_PHONE        = '573245348148';
+const WAHA_URL           = 'https://waha-production-e270.up.railway.app';
+const WAHA_KEY           = 'ad6e006bce1544099c7e09c768716edd';
+
+let _typingTimer = null;
+function wahaTyping(chatId, start) {
+  if (!chatId) return;
+  fetch(`${WAHA_URL}/api/${start ? 'startTyping' : 'stopTyping'}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': WAHA_KEY },
+    body: JSON.stringify({ chatId, session: 'tomahoxs' })
+  }).catch(() => {});
+}
 
 function adminCmd(cmd) {
   return fetch(BOT_WH_URL, {
@@ -1121,7 +1133,7 @@ function renderChats(convs) {
       <div class="msg-col" id="msgs-${i}"></div>
       <div class="reply-box">
         <textarea class="reply-input" id="reply-${i}" placeholder="${isWa ? 'Escribe tu respuesta…' : 'Responder desde Meta Business Suite'}" rows="1" ${isWa ? '' : 'disabled'}></textarea>
-        <button class="reply-send" id="send-${i}" data-phone="${c.phone}" ${isWa ? '' : 'disabled style="opacity:.4"'}>Enviar</button>
+        <button class="reply-send" id="send-${i}" data-phone="${c.phone}" data-chatid="${c.chatId || ''}" ${isWa ? '' : 'disabled style="opacity:.4"'}>Enviar</button>
       </div>
     </div>`;
   }).join('');
@@ -1153,11 +1165,14 @@ function renderChats(convs) {
 
   el.querySelectorAll('.reply-send').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const idx   = parseInt(btn.id.replace('send-', ''));
-      const phone = btn.dataset.phone;
-      const inp   = document.getElementById('reply-' + idx);
-      const msg   = inp.value.trim();
+      const idx    = parseInt(btn.id.replace('send-', ''));
+      const phone  = btn.dataset.phone;
+      const chatId = btn.dataset.chatid;
+      const inp    = document.getElementById('reply-' + idx);
+      const msg    = inp.value.trim();
       if (!msg) return;
+      clearTimeout(_typingTimer);
+      wahaTyping(chatId, false);
       btn.disabled = true; btn.textContent = '…';
       try {
         const r = await fetch(SEND_MSG_URL, {
@@ -1167,6 +1182,7 @@ function renderChats(convs) {
         const d = await r.json();
         if (d.ok) {
           inp.value = '';
+          inp.style.height = 'auto';
           const conv = el._convs[idx];
           conv.history.push({ role: 'assistant', content: msg });
           renderMsgs(idx, conv.history);
@@ -1179,11 +1195,21 @@ function renderChats(convs) {
     });
   });
 
-  // auto-resize textareas
+  // auto-resize + typing indicator
   el.querySelectorAll('.reply-input').forEach(ta => {
+    const btn    = ta.closest('.reply-box')?.querySelector('.reply-send');
+    const chatId = btn?.dataset?.chatid || '';
     ta.addEventListener('input', () => {
       ta.style.height = 'auto';
       ta.style.height = Math.min(ta.scrollHeight, 90) + 'px';
+      if (!chatId) return;
+      wahaTyping(chatId, true);
+      clearTimeout(_typingTimer);
+      _typingTimer = setTimeout(() => wahaTyping(chatId, false), 4000);
+    });
+    ta.addEventListener('blur', () => {
+      clearTimeout(_typingTimer);
+      if (chatId) wahaTyping(chatId, false);
     });
   });
 }
