@@ -532,6 +532,40 @@
   </div>
 
   <div class="ctrl-section">
+    <div class="ctrl-section-label">Apertura especial</div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn sec" id="abrir-hoy-btn">⚡ Abrir hoy (forzar horario)</button>
+    </div>
+  </div>
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Sellos de lealtad</div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn sec" id="sellos-ver-btn">📊 Ver sellos</button>
+      <input type="text" id="sello-phone" class="disc-input" placeholder="Número" style="width:120px">
+      <button class="ctrl-btn pri" id="sello-add-btn">+ Sello</button>
+      <button class="ctrl-btn danger" id="sello-del-btn">Borrar</button>
+    </div>
+  </div>
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Pagos pendientes</div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn sec" id="pagos-btn">💳 Ver pagos</button>
+      <input type="text" id="pago-phone" class="disc-input" placeholder="Número" style="width:120px">
+      <button class="ctrl-btn success" id="confirmar-btn">✅ Confirmar</button>
+      <button class="ctrl-btn danger" id="rechazar-btn">❌ Rechazar</button>
+    </div>
+  </div>
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Mantenimiento</div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn danger" id="limpiar-chats-btn">🔄 Limpiar todos los chats</button>
+    </div>
+  </div>
+
+  <div class="ctrl-section">
     <div class="ctrl-section-label">Mensaje de difusión</div>
     <textarea id="bcast-text" class="bcast-area">Hola 👋 Te escribimos del equipo de Tomahoxs Grill y Ahumados 🔥
 
@@ -955,17 +989,19 @@ function wahaTyping(chatId, start) {
 }
 
 function adminCmd(cmd) {
-  return fetch(BOT_WH_URL, {
+  return fetch('https://primary-production-74bce.up.railway.app/webhook/waha-incoming', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      object: 'whatsapp_business_account',
-      entry: [{ changes: [{ value: {
-        messaging_product: 'whatsapp',
-        contacts: [{ profile: { name: 'Admin' }, wa_id: ADMIN_PHONE }],
-        messages: [{ from: ADMIN_PHONE, id: 'wamid.dash' + Date.now(), type: 'text',
-          text: { body: cmd }, timestamp: String(Math.floor(Date.now()/1000)) }]
-      }}]}]
+      session: 'tomahoxs',
+      event: 'message',
+      payload: {
+        from: ADMIN_PHONE + '@c.us',
+        fromMe: false,
+        body: cmd,
+        type: 'chat',
+        _data: { type: 'chat', notifyName: 'Admin' }
+      }
     })
   });
 }
@@ -1135,6 +1171,9 @@ function renderChats(convs) {
         <textarea class="reply-input" id="reply-${i}" placeholder="${isWa ? 'Escribe tu respuesta…' : 'Responder desde Meta Business Suite'}" rows="1" ${isWa ? '' : 'disabled'}></textarea>
         <button class="reply-send" id="send-${i}" data-phone="${c.phone}" data-chatid="${c.chatId || ''}" ${isWa ? '' : 'disabled style="opacity:.4"'}>Enviar</button>
       </div>
+      <div style="padding:.3rem 0">
+        <button class="ctrl-btn sec" style="font-size:.72rem;padding:.2rem .55rem" data-phone="${c.phone}" id="reset-${i}">🔄 Resetear conversación</button>
+      </div>
     </div>`;
   }).join('');
 
@@ -1175,12 +1214,12 @@ function renderChats(convs) {
       wahaTyping(chatId, false);
       btn.disabled = true; btn.textContent = '…';
       try {
-        const r = await fetch(SEND_MSG_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, message: msg })
+        const r = await fetch(`${WAHA_URL}/api/sendText`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Api-Key': WAHA_KEY },
+          body: JSON.stringify({ chatId, text: msg, session: 'tomahoxs' })
         });
-        const d = await r.json();
-        if (d.ok) {
+        if (r.ok) {
           inp.value = '';
           inp.style.height = 'auto';
           const conv = el._convs[idx];
@@ -1210,6 +1249,17 @@ function renderChats(convs) {
     ta.addEventListener('blur', () => {
       clearTimeout(_typingTimer);
       if (chatId) wahaTyping(chatId, false);
+    });
+  });
+
+  // Bind resetear por chat
+  el.querySelectorAll('[id^="reset-"]').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const phone = btn.dataset.phone;
+      if (!confirm('¿Resetear conversación de ' + phone.replace(/^57/, '') + '?')) return;
+      await adminCmd('!resetear ' + phone);
+      toast('Conversación reseteada ✓', 'ok');
     });
   });
 }
@@ -1251,6 +1301,62 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 // Auto-load on start since Chats is the default tab
 loadBotState();
+
+// ── Nuevos comandos Control tab ───────────────────────────────────────────
+document.getElementById('abrir-hoy-btn').addEventListener('click', async () => {
+  await adminCmd('!abrir_hoy');
+  await new Promise(r => setTimeout(r, 1200));
+  await loadBotState();
+  toast('⚡ Forzado abierto hoy ✓', 'ok');
+});
+
+document.getElementById('sellos-ver-btn').addEventListener('click', async () => {
+  await adminCmd('!sellos');
+  toast('Respuesta llegará a tu WhatsApp ✓', 'inf');
+});
+
+document.getElementById('sello-add-btn').addEventListener('click', async () => {
+  const num = document.getElementById('sello-phone').value.trim();
+  if (!num) { toast('Ingresa el número del cliente', 'err'); return; }
+  await adminCmd('!sello ' + num);
+  toast('Sello registrado ✓', 'ok');
+});
+
+document.getElementById('sello-del-btn').addEventListener('click', async () => {
+  const num = document.getElementById('sello-phone').value.trim();
+  if (!num) { toast('Ingresa el número del cliente', 'err'); return; }
+  if (!confirm('¿Borrar sellos de ' + num + '?')) return;
+  await adminCmd('!borrar_sellos ' + num);
+  toast('Sellos borrados ✓', 'inf');
+});
+
+document.getElementById('pagos-btn').addEventListener('click', async () => {
+  await adminCmd('!pagos');
+  toast('Respuesta llegará a tu WhatsApp ✓', 'inf');
+});
+
+document.getElementById('confirmar-btn').addEventListener('click', async () => {
+  const num = document.getElementById('pago-phone').value.trim();
+  if (!num) { toast('Ingresa el número del pedido', 'err'); return; }
+  await adminCmd('!confirmar ' + num);
+  document.getElementById('pago-phone').value = '';
+  toast('Pago confirmado ✓', 'ok');
+});
+
+document.getElementById('rechazar-btn').addEventListener('click', async () => {
+  const num = document.getElementById('pago-phone').value.trim();
+  if (!num) { toast('Ingresa el número del pedido', 'err'); return; }
+  if (!confirm('¿Rechazar pago de ' + num + '?')) return;
+  await adminCmd('!rechazar ' + num);
+  document.getElementById('pago-phone').value = '';
+  toast('Pago rechazado ✓', 'inf');
+});
+
+document.getElementById('limpiar-chats-btn').addEventListener('click', async () => {
+  if (!confirm('¿Limpiar TODOS los historiales? Los clientes empezarán desde cero.')) return;
+  await adminCmd('!limpiar_chats');
+  toast('Chats limpiados ✓', 'ok');
+});
 </script>
 </body>
 </html>
