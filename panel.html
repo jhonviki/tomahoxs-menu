@@ -1282,12 +1282,20 @@ function renderMsgs(idx, history) {
   const el = document.getElementById('msgs-' + idx);
   if (!el) return;
   el.innerHTML = history.slice(-20).map(renderMsgContent).join('');
-  // Lazy-load media URLs
   el.querySelectorAll('img[data-mediaid]').forEach(async img => {
+    const mediaId = img.dataset.mediaid;
+    if (!mediaId) return;
     try {
-      const r = await fetch(`${MEDIA_PROXY}?id=${img.dataset.mediaid}`);
-      const j = await r.json();
-      if (j.url) img.src = j.url;
+      if (mediaId.startsWith('http')) {
+        // WAHA media URL — requiere autenticación
+        const r = await fetch(mediaId, { headers: { 'X-Api-Key': WAHA_KEY } });
+        if (r.ok) img.src = URL.createObjectURL(await r.blob());
+      } else {
+        // Meta media ID (legacy) — usa proxy n8n
+        const r = await fetch(`${MEDIA_PROXY}?id=${mediaId}`);
+        const j = await r.json();
+        if (j.url) img.src = j.url;
+      }
     } catch {}
   });
   el.parentElement?.scrollTo(0, el.scrollHeight);
