@@ -1188,12 +1188,32 @@ function renderChats(convs) {
   });
 }
 
+const MEDIA_PROXY = 'https://primary-production-74bce.up.railway.app/webhook/media-url';
+function renderMsgContent(m) {
+  const cls = m.role === 'user' ? 'user' : 'bot';
+  if (m.mediaId && m.content === '[imagen]') {
+    return `<div class="msg-bubble ${cls}" style="padding:4px">
+      <img src="" data-mediaid="${m.mediaId}" loading="lazy"
+        style="max-width:180px;border-radius:8px;cursor:pointer;display:block"
+        onerror="this.style.display='none';this.nextSibling.style.display=''"
+        onclick="window.open(this.src,'_blank')">
+      <span style="display:none;font-size:12px;opacity:.6">📷 imagen</span>
+    </div>`;
+  }
+  return `<div class="msg-bubble ${cls}">${(m.content || '').replace(/</g,'&lt;').slice(0, 400)}</div>`;
+}
 function renderMsgs(idx, history) {
   const el = document.getElementById('msgs-' + idx);
   if (!el) return;
-  el.innerHTML = history.slice(-12).map(m =>
-    `<div class="msg-bubble ${m.role === 'user' ? 'user' : 'bot'}">${(m.content || '').slice(0, 300)}</div>`
-  ).join('');
+  el.innerHTML = history.slice(-20).map(renderMsgContent).join('');
+  // Lazy-load media URLs
+  el.querySelectorAll('img[data-mediaid]').forEach(async img => {
+    try {
+      const r = await fetch(`${MEDIA_PROXY}?id=${img.dataset.mediaid}`);
+      const j = await r.json();
+      if (j.url) img.src = j.url;
+    } catch {}
+  });
   el.parentElement?.scrollTo(0, el.scrollHeight);
 }
 
