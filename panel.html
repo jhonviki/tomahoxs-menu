@@ -560,7 +560,12 @@
 
   <div class="ctrl-section">
     <div class="ctrl-section-label">Mantenimiento</div>
-    <div class="ctrl-row">
+    <div class="ctrl-row" style="gap:6px;flex-wrap:wrap">
+      <input type="text" id="reset-phone-input" class="disc-input" placeholder="Número ej: 573001234567" style="width:200px">
+      <button class="ctrl-btn" id="reset-phone-btn">🔄 Resetear chat</button>
+      <button class="ctrl-btn danger" id="delete-phone-btn">🗑️ Borrar chat</button>
+    </div>
+    <div class="ctrl-row" style="margin-top:6px">
       <button class="ctrl-btn danger" id="limpiar-chats-btn">🔄 Limpiar todos los chats</button>
     </div>
   </div>
@@ -1358,6 +1363,23 @@ document.getElementById('rechazar-btn').addEventListener('click', async () => {
   await adminCmd('!rechazar ' + num);
   document.getElementById('pago-phone').value = '';
   toast('Pago rechazado ✓', 'inf');
+});
+
+document.getElementById('reset-phone-btn').addEventListener('click', async () => {
+  const num = document.getElementById('reset-phone-input').value.trim().replace(/\D/g,'');
+  if (!num) return toast('Ingresa un número', 'err');
+  await adminCmd('!resetear ' + num);
+  document.getElementById('reset-phone-input').value = '';
+  toast('Chat reseteado ✓', 'ok');
+});
+
+document.getElementById('delete-phone-btn').addEventListener('click', async () => {
+  const num = document.getElementById('reset-phone-input').value.trim().replace(/\D/g,'');
+  if (!num) return toast('Ingresa un número', 'err');
+  if (!confirm('¿Borrar historial de ' + num + '? No se puede deshacer.')) return;
+  await adminCmd('!resetear ' + num);
+  document.getElementById('reset-phone-input').value = '';
+  toast('Chat borrado ✓', 'ok');
 });
 
 document.getElementById('limpiar-chats-btn').addEventListener('click', async () => {
