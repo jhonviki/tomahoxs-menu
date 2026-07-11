@@ -1016,6 +1016,7 @@ function adminCmd(cmd) {
 
 async function loadBotState() {
   try {
+    const scrollY = window.scrollY;
     const [rWa, rMs] = await Promise.allSettled([
       fetch(BOT_STATE_URL,       { signal: AbortSignal.timeout(5000) }),
       fetch(MESSENGER_STATE_URL, { signal: AbortSignal.timeout(5000) })
@@ -1034,6 +1035,7 @@ async function loadBotState() {
     allConvs = [...waConvs, ...msConvs].sort((a,b) => (b.lastMessageAt||0) - (a.lastMessageAt||0));
     updateBadges();
     renderChats(allConvs.filter(c => (c.canal || 'whatsapp') === activeCanal));
+    window.scrollTo(0, scrollY);
   } catch(e) { console.error('loadBotState:', e); }
 }
 
@@ -1099,6 +1101,7 @@ document.getElementById('bcast-copy').addEventListener('click', () => {
 
 // ── Chats render ──────────────────────────────────────────────────────────
 let openChat = null;
+let openChatPhone = null;
 let allConvs = [];
 let activeCanal = 'whatsapp';
 
@@ -1129,6 +1132,7 @@ document.getElementById('canal-tabs').addEventListener('click', e => {
   btn.classList.add('active');
   activeCanal = btn.dataset.canal;
   openChat = null;
+  openChatPhone = null;
   renderChats(allConvs.filter(c => (c.canal || 'whatsapp') === activeCanal));
 });
 
@@ -1202,6 +1206,7 @@ function renderChats(convs) {
       }
       openChat = idx;
       const conv = el._convs[idx];
+      openChatPhone = conv.phone;
       markSeen(conv.phone);
       updateBadges();
       item.classList.remove('unread');
@@ -1293,6 +1298,21 @@ function renderChats(convs) {
       toast('Conversación reseteada ✓', 'ok');
     });
   });
+
+  // Restaurar chat abierto tras re-render
+  if (openChatPhone) {
+    const newIdx = convs.findIndex(c => c.phone === openChatPhone);
+    if (newIdx !== -1) {
+      openChat = newIdx;
+      const hist = document.getElementById('hist-' + newIdx);
+      if (hist) {
+        hist.classList.add('open');
+        renderMsgs(newIdx, convs[newIdx].history || []);
+      }
+    } else {
+      openChatPhone = null;
+    }
+  }
 }
 
 const MEDIA_PROXY = 'https://primary-production-74bce.up.railway.app/webhook/media-url';
@@ -1340,6 +1360,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 // Auto-load on start since Chats is the default tab
 loadBotState();
+setInterval(loadBotState, 15000);
 
 // ── Nuevos comandos Control tab ───────────────────────────────────────────
 document.getElementById('abrir-hoy-btn').addEventListener('click', async () => {
