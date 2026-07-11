@@ -571,6 +571,20 @@
   </div>
 
   <div class="ctrl-section">
+    <div class="ctrl-section-label">Terminal de comandos</div>
+    <div class="ctrl-row" style="gap:6px">
+      <input type="text" id="cmd-input" class="disc-input" placeholder="!agotado Chic-Candy" style="flex:1;min-width:0">
+      <button class="ctrl-btn pri" id="cmd-run-btn">▶ Ejecutar</button>
+    </div>
+    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="ctrl-btn sec" style="font-size:.72rem" data-cmd="!estado">📊 Estado</button>
+      <button class="ctrl-btn sec" style="font-size:.72rem" data-cmd="!agotados">🔴 Ver agotados</button>
+      <button class="ctrl-btn sec" style="font-size:.72rem" data-cmd="!limpiar">🧹 Limpiar mi chat</button>
+    </div>
+    <div id="cmd-output" style="margin-top:8px;background:#111;border-radius:6px;padding:8px 10px;font-size:.78rem;color:#aaa;min-height:32px;white-space:pre-wrap;display:none"></div>
+  </div>
+
+  <div class="ctrl-section">
     <div class="ctrl-section-label">Mensaje de difusión</div>
     <textarea id="bcast-text" class="bcast-area">Hola 👋 Te escribimos del equipo de Tomahoxs Grill y Ahumados 🔥
 
@@ -1433,6 +1447,31 @@ document.getElementById('limpiar-chats-btn').addEventListener('click', async () 
   if (!confirm('¿Limpiar TODOS los historiales? Los clientes empezarán desde cero.')) return;
   await adminCmd('!limpiar_chats');
   toast('Chats limpiados ✓', 'ok');
+});
+
+// Terminal de comandos
+async function runCmd(cmd) {
+  cmd = cmd.trim();
+  if (!cmd) return;
+  const out = document.getElementById('cmd-output');
+  out.style.display = 'block';
+  out.textContent = '⏳ Ejecutando: ' + cmd;
+  await adminCmd(cmd);
+  out.textContent = '✅ Enviado: ' + cmd + '\n(La respuesta llega como mensaje de WA al número admin)';
+  toast('Comando enviado ✓', 'ok');
+}
+
+document.getElementById('cmd-run-btn').addEventListener('click', () => {
+  runCmd(document.getElementById('cmd-input').value);
+});
+document.getElementById('cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); runCmd(e.target.value); }
+});
+document.querySelectorAll('[data-cmd]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('cmd-input').value = btn.dataset.cmd;
+    runCmd(btn.dataset.cmd);
+  });
 });
 </script>
 </body>
