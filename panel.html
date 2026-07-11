@@ -1231,15 +1231,10 @@ function renderChats(convs) {
             body: JSON.stringify({ chatId, text: msg, session: 'tomahoxs' })
           });
         } else {
-          const isIg = canal === 'instagram';
-          const url = isIg
-            ? `https://graph.instagram.com/v21.0/${IG_PAGE_ID}/messages`
-            : 'https://graph.facebook.com/v20.0/me/messages';
-          const token = isIg ? IG_TOKEN : FB_TOKEN;
-          r = await fetch(url, {
+          r = await fetch('https://primary-production-74bce.up.railway.app/webhook/messenger-send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient: { id: phone }, message: { text: msg }, access_token: token })
+            body: JSON.stringify({ phone, message: msg, isInstagram: canal === 'instagram' })
           });
         }
         if (r.ok) {
@@ -1274,6 +1269,12 @@ function renderChats(convs) {
     ta.addEventListener('blur', () => {
       clearTimeout(_typingTimer);
       if (chatId && isWaInput) wahaTyping(chatId, false);
+    });
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        btn?.click();
+      }
     });
   });
 
