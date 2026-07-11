@@ -998,7 +998,7 @@ const ADMIN_PHONE        = '573245348148';
 const WAHA_URL           = 'https://waha-production-e270.up.railway.app';
 const WAHA_KEY           = 'ad6e006bce1544099c7e09c768716edd';
 const FB_TOKEN           = 'EAGAuA4lkSz0BR4KMFxtPDbIilYAUWnJkcf4Pbv5cC5jg3ly5TI1PflVFH6L0DJp8Tr9rJSTwrU9rHS88ZARM02ZBCKcAhOm2lgHI8CEXyOYR7HTvPlyAupM35aPCvxA0aNGZCXJ2RdrzW5WEFx5iHrRDTWG80rpwXlfKkDkXiVmLHYVS0irYX6IZBMUGoVMHsSQcFFDqPXrdqymD9ulcTR2DEdEx3yX2ZCAZAFrwH7rNyjKTXJWWwIPgZDZD';
-const IG_TOKEN           = FB_TOKEN; // FB page token handles IG too via graph.facebook.com
+const IG_TOKEN           = 'IGAAZAXWZC5zjVxBZAGFsVll3WnJrV1RFMDg3VjhOVVFOMkxIMTBYZAHZAQQ0dtLVc2MGlMMVdNVkNlWWJ0ZAkRIUzB3ZAkxrVThSX0NCa2VhZAW9EdWxxQzVUV2tHQlR2OS1haTF3WC0tQllFQVBOUkVkRUhkUjFteGVCU240NGZAlelA1dwZDZD';
 const IG_PAGE_ID         = '17841426735109068';
 
 let _typingTimer = null;
@@ -1274,9 +1274,11 @@ function renderChats(convs) {
             body: JSON.stringify({ chatId, text: msg, session: 'tomahoxs' })
           });
         } else {
-          // Both IG and FB use the FB page token via graph.facebook.com
-          const url = 'https://graph.facebook.com/v20.0/me/messages';
-          const token = FB_TOKEN;
+          const isIg = canal === 'instagram';
+          const url = isIg
+            ? `https://graph.instagram.com/v21.0/${IG_PAGE_ID}/messages`
+            : 'https://graph.facebook.com/v20.0/me/messages';
+          const token = isIg ? IG_TOKEN : FB_TOKEN;
           r = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
