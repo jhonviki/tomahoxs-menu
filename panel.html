@@ -982,6 +982,9 @@ const BOT_WH_URL         = 'https://primary-production-74bce.up.railway.app/webh
 const ADMIN_PHONE        = '573245348148';
 const WAHA_URL           = 'https://waha-production-e270.up.railway.app';
 const WAHA_KEY           = 'ad6e006bce1544099c7e09c768716edd';
+const FB_TOKEN           = 'EAGAuA4lkSz0BRvwp61blUXIcyBmI1t3lmedjIh4Us1dT1nxLJ2ExGlsZBbeyykZBLUL4lIlIHMb6ilj3RvDNGU11AsSadChTvqHS9bojihVXLwXjt8eKEoYiGI5vLQGh3MrkZBAXii5TSL2PxX4N4JHZABYHUnz6Dl9ixZAECKqdHBdYQ07W94fwRanf67rBzlTuDg4rb7SQOs';
+const IG_TOKEN           = 'IGAAZAXWZC5zjVxBZAFozM1ZAPYU93Y3hPcmQzX05PaEFFeXhQMzNUc1c4ay02SVNEeHB4SUplaWZAfdklhaEFyd1h4N0M1U0pNako1OHJldENOMFZADc0w3RkcxMjRFaHhNajAyUThXbWVhdFawWnZALVWM4R3R3';
+const IG_PAGE_ID         = '17841426735109068';
 
 let _typingTimer = null;
 function wahaTyping(chatId, start) {
@@ -1173,8 +1176,8 @@ function renderChats(convs) {
     <div class="chat-hist" id="hist-${i}">
       <div class="msg-col" id="msgs-${i}"></div>
       <div class="reply-box">
-        <textarea class="reply-input" id="reply-${i}" placeholder="${isWa ? 'Escribe tu respuesta…' : 'Responder desde Meta Business Suite'}" rows="1" ${isWa ? '' : 'disabled'}></textarea>
-        <button class="reply-send" id="send-${i}" data-phone="${c.phone}" data-chatid="${c.chatId || ''}" ${isWa ? '' : 'disabled style="opacity:.4"'}>Enviar</button>
+        <textarea class="reply-input" id="reply-${i}" placeholder="Escribe tu respuesta…" rows="1"></textarea>
+        <button class="reply-send" id="send-${i}" data-phone="${c.phone}" data-chatid="${c.chatId || ''}" data-canal="${c.canal}">Enviar</button>
       </div>
       <div style="padding:.3rem 0">
         <button class="ctrl-btn sec" style="font-size:.72rem;padding:.2rem .55rem" data-phone="${c.phone}" id="reset-${i}">🔄 Resetear conversación</button>
@@ -1215,15 +1218,30 @@ function renderChats(convs) {
       const inp    = document.getElementById('reply-' + idx);
       const msg    = inp.value.trim();
       if (!msg) return;
+      const canal = btn.dataset.canal;
       clearTimeout(_typingTimer);
-      wahaTyping(chatId, false);
+      if (canal === 'whatsapp') wahaTyping(chatId, false);
       btn.disabled = true; btn.textContent = '…';
       try {
-        const r = await fetch(`${WAHA_URL}/api/sendText`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Api-Key': WAHA_KEY },
-          body: JSON.stringify({ chatId, text: msg, session: 'tomahoxs' })
-        });
+        let r;
+        if (canal === 'whatsapp') {
+          r = await fetch(`${WAHA_URL}/api/sendText`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Api-Key': WAHA_KEY },
+            body: JSON.stringify({ chatId, text: msg, session: 'tomahoxs' })
+          });
+        } else {
+          const isIg = canal === 'instagram';
+          const url = isIg
+            ? `https://graph.instagram.com/v21.0/${IG_PAGE_ID}/messages`
+            : 'https://graph.facebook.com/v20.0/me/messages';
+          const token = isIg ? IG_TOKEN : FB_TOKEN;
+          r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient: { id: phone }, message: { text: msg }, access_token: token })
+          });
+        }
         if (r.ok) {
           inp.value = '';
           inp.style.height = 'auto';
@@ -1232,7 +1250,8 @@ function renderChats(convs) {
           renderMsgs(idx, conv.history);
           toast('Mensaje enviado ✓', 'ok');
         } else {
-          toast('Error al enviar', 'err');
+          const err = await r.text();
+          toast('Error: ' + err.slice(0, 80), 'err');
         }
       } catch { toast('Sin conexión', 'err'); }
       btn.disabled = false; btn.textContent = 'Enviar';
@@ -1243,17 +1262,18 @@ function renderChats(convs) {
   el.querySelectorAll('.reply-input').forEach(ta => {
     const btn    = ta.closest('.reply-box')?.querySelector('.reply-send');
     const chatId = btn?.dataset?.chatid || '';
+    const isWaInput = btn?.dataset?.canal === 'whatsapp';
     ta.addEventListener('input', () => {
       ta.style.height = 'auto';
       ta.style.height = Math.min(ta.scrollHeight, 90) + 'px';
-      if (!chatId) return;
+      if (!chatId || !isWaInput) return;
       wahaTyping(chatId, true);
       clearTimeout(_typingTimer);
       _typingTimer = setTimeout(() => wahaTyping(chatId, false), 4000);
     });
     ta.addEventListener('blur', () => {
       clearTimeout(_typingTimer);
-      if (chatId) wahaTyping(chatId, false);
+      if (chatId && isWaInput) wahaTyping(chatId, false);
     });
   });
 
