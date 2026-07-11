@@ -611,7 +611,7 @@ Escríbenos "hola" y el descuento se aplica automático al confirmar tu pedido.
 
 <script>
 // ── Config ──────────────────────────────────────────────────────────────
-const READ_URL  = 'https://primary-production-74bce.up.railway.app/webhook/menu-agotados';
+const READ_URL  = 'https://primary-production-74bce.up.railway.app/webhook/bot-state';
 const WRITE_URL = 'https://primary-production-74bce.up.railway.app/webhook/agotados-update';
 
 // ── Menu data ────────────────────────────────────────────────────────────
@@ -1037,9 +1037,13 @@ async function loadBotState() {
       fetch(MESSENGER_STATE_URL, { signal: AbortSignal.timeout(5000) })
     ]);
     let waData = { conversaciones: [], descuento: 0 };
-    let msData = { conversations: [] };
+    let msData = _lastMsData; // fallback to last good data
     if (rWa.status === 'fulfilled' && rWa.value.ok) waData = await rWa.value.json();
-    if (rMs.status === 'fulfilled' && rMs.value.ok) msData = await rMs.value.json();
+    if (rMs.status === 'fulfilled' && rMs.value.ok) {
+      const parsed = await rMs.value.json();
+      if (parsed.conversations?.length) _lastMsData = parsed;
+      msData = parsed;
+    }
     applyBotState(waData);
     const waConvs = (waData.conversaciones || []).map(c => ({ ...c, canal: 'whatsapp' }));
     const msConvs = (msData.conversations || []).map(c => ({
@@ -1075,6 +1079,14 @@ function applyBotState(d) {
     badge.textContent = '● Cerrado'; badge.className = 'bot-status-badge closed';
   } else {
     badge.textContent = '● Abierto'; badge.className = 'bot-status-badge open';
+  }
+  // Agotados — sync from bot-state (source of truth)
+  if (d.agotados) {
+    const newServer = new Set(d.agotados);
+    const localMatchesServer = [...localAgotados].every(a => serverAgotados.has(a)) &&
+                               [...serverAgotados].every(a => localAgotados.has(a));
+    serverAgotados = newServer;
+    if (localMatchesServer) { localAgotados = new Set(newServer); render(); }
   }
 }
 
@@ -1128,6 +1140,7 @@ let openChat = null;
 let openChatPhone = null;
 let allConvs = [];
 let activeCanal = 'whatsapp';
+let _lastMsData = { conversations: [] };
 const localSent = {}; // phone → [{role,content,timestamp}] — sobrevive refreshes
 
 function updateBadges() {
