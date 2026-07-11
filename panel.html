@@ -1141,7 +1141,20 @@ let openChatPhone = null;
 let allConvs = [];
 let activeCanal = 'whatsapp';
 let _lastMsData = { conversations: [] };
-const localSent = {}; // phone → [{role,content,timestamp}] — sobrevive refreshes
+// localSent persiste en localStorage para sobrevivir F5
+function _loadSent() {
+  try { return JSON.parse(localStorage.getItem('tmx_sent') || '{}'); } catch { return {}; }
+}
+function _saveSent(s) {
+  // Limpiar entradas > 6 horas para no acumular
+  const cutoff = Date.now() - 6*3600*1000;
+  for (const ph of Object.keys(s)) {
+    s[ph] = s[ph].filter(m => m.timestamp > cutoff);
+    if (!s[ph].length) delete s[ph];
+  }
+  try { localStorage.setItem('tmx_sent', JSON.stringify(s)); } catch {}
+}
+let localSent = _loadSent();
 
 function updateBadges() {
   ['whatsapp','instagram','facebook'].forEach(canal => {
@@ -1275,15 +1288,20 @@ function renderChats(convs) {
           });
         } else {
           const isIg = canal === 'instagram';
-          const url = isIg
-            ? `https://graph.instagram.com/v21.0/${IG_PAGE_ID}/messages`
-            : 'https://graph.facebook.com/v20.0/me/messages';
-          const token = isIg ? IG_TOKEN : FB_TOKEN;
-          r = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient: { id: phone }, message: { text: msg }, access_token: token })
-          });
+          if (isIg) {
+            // IG: rutar por n8n (graph.instagram.com bloquea CORS desde browser)
+            r = await fetch('https://primary-production-74bce.up.railway.app/webhook/messenger-send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone, message: msg, isInstagram: true })
+            });
+          } else {
+            r = await fetch('https://graph.facebook.com/v20.0/me/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ recipient: { id: phone }, message: { text: msg }, access_token: FB_TOKEN })
+            });
+          }
         }
         if (r.ok) {
           inp.value = '';
@@ -1293,6 +1311,7 @@ function renderChats(convs) {
           conv.history.push(sent);
           localSent[phone] = localSent[phone] || [];
           localSent[phone].push(sent);
+          _saveSent(localSent);
           renderMsgs(idx, conv.history);
           toast('Mensaje enviado ✓', 'ok');
         } else {
