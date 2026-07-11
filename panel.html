@@ -1048,6 +1048,15 @@ async function loadBotState() {
       canal: c.canal || 'instagram'
     }));
     allConvs = [...waConvs, ...msConvs].sort((a,b) => (b.lastMessageAt||0) - (a.lastMessageAt||0));
+    // Merge mensajes enviados desde el panel (no los guarda el servidor)
+    for (const conv of allConvs) {
+      const pending = localSent[conv.phone];
+      if (!pending?.length) continue;
+      const lastServer = conv.history?.at(-1);
+      // Solo agregar los que no están ya en el historial del servidor
+      const newOnes = pending.filter(m => !lastServer || m.timestamp > (conv.lastMessageAt || 0));
+      if (newOnes.length) conv.history = [...(conv.history || []), ...newOnes];
+    }
     updateBadges();
     renderChats(allConvs.filter(c => (c.canal || 'whatsapp') === activeCanal));
     window.scrollTo(0, scrollY);
@@ -1119,6 +1128,7 @@ let openChat = null;
 let openChatPhone = null;
 let allConvs = [];
 let activeCanal = 'whatsapp';
+const localSent = {}; // phone → [{role,content,timestamp}] — sobrevive refreshes
 
 function updateBadges() {
   ['whatsapp','instagram','facebook'].forEach(canal => {
@@ -1266,7 +1276,10 @@ function renderChats(convs) {
           inp.value = '';
           inp.style.height = 'auto';
           const conv = el._convs[idx];
-          conv.history.push({ role: 'assistant', content: msg });
+          const sent = { role: 'assistant', content: msg, timestamp: Date.now() };
+          conv.history.push(sent);
+          localSent[phone] = localSent[phone] || [];
+          localSent[phone].push(sent);
           renderMsgs(idx, conv.history);
           toast('Mensaje enviado ✓', 'ok');
         } else {
