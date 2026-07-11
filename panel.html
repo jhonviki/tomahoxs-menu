@@ -1288,20 +1288,12 @@ function renderChats(convs) {
           });
         } else {
           const isIg = canal === 'instagram';
-          if (isIg) {
-            // IG: rutar por n8n (graph.instagram.com bloquea CORS desde browser)
-            r = await fetch('https://primary-production-74bce.up.railway.app/webhook/messenger-send', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone, message: msg, isInstagram: true })
-            });
-          } else {
-            r = await fetch('https://graph.facebook.com/v20.0/me/messages', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ recipient: { id: phone }, message: { text: msg }, access_token: FB_TOKEN })
-            });
-          }
+          // Rutar ambos (IG y FB) por n8n para evitar CORS
+          r = await fetch('https://primary-production-74bce.up.railway.app/webhook/messenger-send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, message: msg, isInstagram: isIg })
+          });
         }
         if (r.ok) {
           inp.value = '';
