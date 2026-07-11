@@ -982,7 +982,7 @@ const BOT_WH_URL         = 'https://primary-production-74bce.up.railway.app/webh
 const ADMIN_PHONE        = '573245348148';
 const WAHA_URL           = 'https://waha-production-e270.up.railway.app';
 const WAHA_KEY           = 'ad6e006bce1544099c7e09c768716edd';
-const FB_TOKEN           = 'EAGAuA4lkSz0BR3BIWnS0LXLdAMVvsUblt3whiZB2ajctmJHZCkYhRzUqKHcJSS4WQZAst96Dg9JBgilqjFD0wB6ac44veIAB3kZATxxS2E7LK9QhZB9Ber5ZBz0jtnZClngM3WweS27N26FBzvcHOiyXNjwZAXWTZCZCMmZAozlnmlLRCRKJYLa6zcRZBZBYvo0hNAMlZAnZBFJzFK5RsUnrlAeP21jTZAuZAjYEtR5u4RZBibrCTz6A4emLZBPfB0PT1bIhaSYGmQU2gUbjyhL5cukQxJA5GEJhtBjETNPSlF1HuU35roZD';
+const FB_TOKEN           = 'EAGAuA4lkSz0BR5EZAguGvZAbZCeix7gGmQyzpQsnYAcpQr1OyF3P6N4yhOZB695vTZCdK4zNsqKeBr6agRxEmDohCaDbl8c9exEHueHlMvr5yNHEq8GI8KdoeWG2ZCQMhRg1AFZCCa0An9UZCN5VxDucuDEEUDUW8FZBSNHhl7a9WVoDy8Cbtf7ZBi222sVEq4gyL44ZBzkVmZAppHZCeydkZBzYZB6gCZBb03qsEZC1V6tKytOjBeCFNjUOFQDnTKCp1NBMZD';
 const IG_TOKEN           = 'IGAAZAXWZC5zjVxBZAFozM1ZAPYU93Y3hPcmQzX05PaEFFeXhQMzNUc1c4ay02SVNEeHB4SUplaWZAfdklhaEFyd1h4N0M1U0pNako1OHJldENOMFZADc0w3RkcxMjRFaHhNajAyUThXbWVhdFawWnZALVWM4R3R3';
 const IG_PAGE_ID         = '17841426735109068';
 
@@ -1231,10 +1231,15 @@ function renderChats(convs) {
             body: JSON.stringify({ chatId, text: msg, session: 'tomahoxs' })
           });
         } else {
-          r = await fetch('https://primary-production-74bce.up.railway.app/webhook/messenger-send', {
+          const isIg = canal === 'instagram';
+          const url = isIg
+            ? `https://graph.instagram.com/v21.0/${IG_PAGE_ID}/messages`
+            : 'https://graph.facebook.com/v20.0/me/messages';
+          const token = isIg ? IG_TOKEN : FB_TOKEN;
+          r = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, message: msg, isInstagram: canal === 'instagram' })
+            body: JSON.stringify({ recipient: { id: phone }, message: { text: msg }, access_token: token })
           });
         }
         if (r.ok) {
