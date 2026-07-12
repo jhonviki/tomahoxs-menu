@@ -56,7 +56,6 @@ const ENGINE = {
     if (n == null || isNaN(n)) return '—';
     const abs = Math.abs(n);
     if (abs >= 1000000) return `$${(n / 1000000).toFixed(1)}M`;
-    if (abs >= 1000) return `$${Math.round(n / 1000)}K`;
     return `$${Math.round(n).toLocaleString('es-CO')}`;
   },
 
