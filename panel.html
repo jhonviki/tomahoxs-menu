@@ -436,6 +436,57 @@
       background: rgba(245,158,11,.12); color: var(--amber);
       border: 1px solid rgba(245,158,11,.25);
     }
+
+    /* ── Search ─────────────────────────────────────────── */
+    .chat-search {
+      width:100%; background:rgba(255,245,230,.06);
+      border:1px solid var(--border); border-radius:8px;
+      color:var(--text); font-family:var(--fb); font-size:.82rem;
+      padding:.4rem .7rem; margin-bottom:.5rem; outline:none;
+    }
+    .chat-search:focus { border-color:var(--muted); }
+    .chat-search::placeholder { color:var(--ghost); }
+    /* ── Sound btn ───────────────────────────────────────── */
+    .sound-btn {
+      background:none; border:1px solid var(--border); border-radius:6px;
+      color:var(--ghost); font-size:.75rem; padding:.2rem .45rem;
+      cursor:pointer; margin-left:auto; flex-shrink:0;
+    }
+    .sound-btn.on { color:var(--amber); border-color:rgba(245,158,11,.35); }
+    /* ── Chat status ─────────────────────────────────────── */
+    .chat-status-sel {
+      background:rgba(255,245,230,.06); border:1px solid var(--border);
+      border-radius:6px; color:var(--ghost); font-family:var(--fb);
+      font-size:.72rem; padding:.2rem .4rem; cursor:pointer;
+    }
+    .chat-status-sel.s-proceso { border-color:rgba(245,158,11,.4); color:var(--amber); }
+    .chat-status-sel.s-listo   { border-color:rgba(34,197,94,.4);  color:var(--green); }
+    /* ── Chat note ───────────────────────────────────────── */
+    .chat-note {
+      width:100%; background:rgba(255,245,230,.04);
+      border:1px solid var(--border); border-radius:6px;
+      color:var(--muted); font-family:var(--fb); font-size:.75rem;
+      padding:.3rem .55rem; resize:none; min-height:28px; max-height:56px;
+      margin-top:.25rem; outline:none;
+    }
+    .chat-note:focus { border-color:rgba(245,158,11,.35); color:var(--text); }
+    .chat-note::placeholder { color:var(--ghost); }
+    /* ── Pedidos hoy ─────────────────────────────────────── */
+    .pedidos-hoy {
+      background:rgba(245,158,11,.05); border:1px solid rgba(245,158,11,.15);
+      border-radius:10px; padding:.55rem .7rem; margin-bottom:.5rem;
+    }
+    .phoy-header {
+      font-size:.68rem; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; color:#f59e0b;
+      display:flex; justify-content:space-between; cursor:pointer; user-select:none;
+    }
+    .phoy-item {
+      font-size:.75rem; color:var(--text); padding:.18rem 0;
+      border-bottom:1px solid rgba(245,158,11,.08);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .phoy-item:last-child { border-bottom:none; }
   </style>
 </head>
 <body>
@@ -505,7 +556,13 @@
     <button class="canal-tab wa active" data-canal="whatsapp">WA <span class="canal-badge" id="badge-wa">0</span></button>
     <button class="canal-tab ig"        data-canal="instagram">IG <span class="canal-badge" id="badge-ig">0</span></button>
     <button class="canal-tab fb"        data-canal="facebook">FB <span class="canal-badge" id="badge-fb">0</span></button>
+    <button class="sound-btn" id="sound-btn" title="Notificación de sonido">🔕</button>
   </div>
+  <div class="pedidos-hoy" id="pedidos-hoy" style="display:none">
+    <div class="phoy-header" id="phoy-header">🔥 Pedidos de hoy <span id="phoy-toggle">▸</span></div>
+    <div id="phoy-body" style="display:none"></div>
+  </div>
+  <input class="chat-search" id="chat-search" type="search" placeholder="Buscar nombre o número…">
   <div id="chats-list"><div class="chats-empty">Cargando conversaciones…</div></div>
 </div>
 
@@ -1234,9 +1291,18 @@ function renderChats(convs) {
         <textarea class="reply-input" id="reply-${i}" placeholder="Escribe tu respuesta…" rows="1"></textarea>
         <button class="reply-send" id="send-${i}" data-phone="${c.phone}" data-chatid="${c.chatId || ''}" data-canal="${c.canal}">Enviar</button>
       </div>
-      <div style="padding:.3rem 0">
-        <button class="ctrl-btn sec" style="font-size:.72rem;padding:.2rem .55rem" data-phone="${c.phone}" id="reset-${i}">🔄 Resetear conversación</button>
+      <div style="padding:.3rem 0;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
+        <select class="chat-status-sel" id="status-${i}" data-phone="${c.phone}">
+          <option value="">— estado —</option>
+          <option value="proceso">⏳ En proceso</option>
+          <option value="listo">✅ Listo</option>
+          <option value="entregado">📦 Entregado</option>
+        </select>
+        <button class="ctrl-btn sec" style="font-size:.72rem;padding:.2rem .55rem" data-phone="${c.phone}" id="reset-${i}">🔄 Resetear</button>
+        <button class="ctrl-btn sec" style="font-size:.72rem;padding:.2rem .55rem" data-phone="${c.phone}" data-name="${name}" id="export-${i}">📥 Exportar</button>
+        <button class="ctrl-btn sec" style="font-size:.72rem;padding:.2rem .55rem" data-phone="${c.phone}" id="unread-${i}">📵 No leído</button>
       </div>
+      <textarea class="chat-note" id="note-${i}" data-phone="${c.phone}" placeholder="Nota interna (no le llega al cliente)…" rows="1"></textarea>
     </div>`;
   }).join('');
 
@@ -1337,6 +1403,60 @@ function renderChats(convs) {
         e.preventDefault();
         btn?.click();
       }
+    });
+  });
+
+  // Bind status selects
+  const _statuses = _getStatuses();
+  el.querySelectorAll('.chat-status-sel').forEach(sel => {
+    const ph = sel.dataset.phone;
+    const val = _statuses[ph] || '';
+    sel.value = val;
+    if (val) sel.classList.add('s-' + val);
+    sel.addEventListener('change', () => {
+      _saveStatus(ph, sel.value);
+      sel.className = 'chat-status-sel' + (sel.value ? ' s-' + sel.value : '');
+    });
+  });
+
+  // Bind notes
+  const _notes = _getNotes();
+  el.querySelectorAll('.chat-note').forEach(ta => {
+    const ph = ta.dataset.phone;
+    ta.value = _notes[ph] || '';
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 56) + 'px';
+      _saveNote(ph, ta.value.trim());
+    });
+  });
+
+  // Bind export
+  el.querySelectorAll('[id^="export-"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(btn.id.replace('export-', ''));
+      const conv = el._convs?.[idx];
+      if (!conv) return;
+      const lines = (conv.history || []).map(m =>
+        `[${m.role === 'user' ? (conv.pushname || conv.phone) : 'Bot'}] ${m.content || ''}`
+      ).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([lines], { type: 'text/plain' }));
+      a.download = `chat_${btn.dataset.name || conv.phone}_${new Date().toLocaleDateString('sv')}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  });
+
+  // Bind mark unread
+  el.querySelectorAll('[id^="unread-"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const s = getSeenAt(); s[btn.dataset.phone] = 0;
+      localStorage.setItem('tmx_seen', JSON.stringify(s));
+      updateBadges();
+      toast('Marcado como no leído', 'inf');
     });
   });
 
@@ -1511,6 +1631,95 @@ document.querySelectorAll('[data-cmd]').forEach(btn => {
     runCmd(btn.dataset.cmd);
   });
 });
+
+// ── Chat search ───────────────────────────────────────────────────────────────
+document.getElementById('chat-search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase().trim();
+  const base = allConvs.filter(c => (c.canal||'whatsapp') === activeCanal);
+  renderChats(q ? base.filter(c =>
+    (c.pushname||'').toLowerCase().includes(q) || (c.phone||'').includes(q)
+  ) : base);
+});
+
+// ── Notes helpers ─────────────────────────────────────────────────────────────
+function _getNotes() { try { return JSON.parse(localStorage.getItem('tmx_notes')||'{}'); } catch { return {}; } }
+function _saveNote(ph, val) {
+  const n = _getNotes(); if (val) n[ph] = val; else delete n[ph];
+  try { localStorage.setItem('tmx_notes', JSON.stringify(n)); } catch {}
+}
+
+// ── Status helpers ────────────────────────────────────────────────────────────
+function _getStatuses() { try { return JSON.parse(localStorage.getItem('tmx_st')||'{}'); } catch { return {}; } }
+function _saveStatus(ph, val) {
+  const s = _getStatuses(); if (val) s[ph] = val; else delete s[ph];
+  try { localStorage.setItem('tmx_st', JSON.stringify(s)); } catch {}
+}
+
+// ── Sound ─────────────────────────────────────────────────────────────────────
+let _soundOn = false;
+let _prevUnreadTotal = 0;
+let _audioCtx = null;
+function _playBeep() {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const osc = _audioCtx.createOscillator();
+    const gain = _audioCtx.createGain();
+    osc.connect(gain); gain.connect(_audioCtx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(.18, _audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, _audioCtx.currentTime + .25);
+    osc.start(); osc.stop(_audioCtx.currentTime + .25);
+  } catch {}
+}
+document.getElementById('sound-btn').addEventListener('click', () => {
+  _soundOn = !_soundOn;
+  const btn = document.getElementById('sound-btn');
+  btn.textContent = _soundOn ? '🔔' : '🔕';
+  btn.classList.toggle('on', _soundOn);
+  toast(_soundOn ? 'Sonido activado' : 'Sonido desactivado', 'inf');
+  if (_soundOn) { try { if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); _audioCtx.resume().then(_playBeep); } catch {} }
+});
+// Patch updateBadges to check sound — safe because updateBadges is a function declaration
+const _origUpdateBadges = updateBadges;
+updateBadges = function() {
+  _origUpdateBadges();
+  const total = allConvs.filter(isUnread).length;
+  if (_soundOn && total > _prevUnreadTotal) _playBeep();
+  _prevUnreadTotal = total;
+};
+
+// ── Pedidos hoy ───────────────────────────────────────────────────────────────
+let _phoyOpen = false;
+document.getElementById('phoy-header').addEventListener('click', () => {
+  _phoyOpen = !_phoyOpen;
+  document.getElementById('phoy-body').style.display = _phoyOpen ? '' : 'none';
+  document.getElementById('phoy-toggle').textContent = _phoyOpen ? '▾' : '▸';
+});
+function renderPedidosHoy() {
+  if (!allPedidos.length) return;
+  const hoy = new Date().toLocaleDateString('sv');
+  const hoyP = allPedidos.filter(p => { const d = parseFecha(p.fecha); return d && d.toLocaleDateString('sv') === hoy; });
+  const sec = document.getElementById('pedidos-hoy');
+  if (!hoyP.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  document.getElementById('phoy-header').innerHTML =
+    `🔥 Pedidos de hoy (${hoyP.length}) <span id="phoy-toggle">${_phoyOpen ? '▾' : '▸'}</span>`;
+  document.getElementById('phoy-body').innerHTML = hoyP.map(p => {
+    const t = (p.tipo||'').toLowerCase().includes('domicilio') ? '🛵' : '🏠';
+    return `<div class="phoy-item">${t} ${p.nombre||'?'} · ${(p.pedido||'').slice(0,42)}</div>`;
+  }).join('');
+  // Re-bind header click after innerHTML replace
+  document.getElementById('phoy-header').addEventListener('click', () => {
+    _phoyOpen = !_phoyOpen;
+    document.getElementById('phoy-body').style.display = _phoyOpen ? '' : 'none';
+  });
+}
+// Cargar pedidos hoy silenciosamente al inicio
+fetch(GAS_URL + '?action=getPedidos&days=1', { redirect:'follow', signal:AbortSignal.timeout(6000) })
+  .then(r => r.ok ? r.json() : null)
+  .then(d => { if (d?.pedidos) { if (!allPedidos.length) allPedidos = d.pedidos.reverse(); renderPedidosHoy(); } })
+  .catch(() => {});
 </script>
 </body>
 </html>
