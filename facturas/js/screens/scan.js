@@ -152,6 +152,8 @@ const SCAN = {
     try {
       await API.post({ action: 'guardarFactura', factura, items });
       API.clearCache();
+      // Actualizar precios en Libro de Costos (best-effort, no bloquea el flujo)
+      SCAN._actualizarLibroCostos(items, factura.proveedor, factura.id).catch(() => {});
       APP.toast('✓ Factura enviada — verifica en Sheets');
       SCAN.reset();
       ROUTER.navigate('historial');
@@ -160,6 +162,20 @@ const SCAN = {
       btn.textContent = 'GUARDAR EN SHEETS';
       btn.disabled = false;
     }
+  },
+
+  async _actualizarLibroCostos(items, proveedor, facturaId) {
+    const payload = items.filter(i => i.producto && i.precio_unidad > 0).map(i => ({
+      insumo: i.producto,
+      precio: i.precio_unidad,
+      facturaId
+    }));
+    if (!payload.length) return;
+    const url = new URL(CONFIG.PEDIDOS_URL);
+    url.searchParams.set('action', 'actualizarCostos');
+    url.searchParams.set('payload', JSON.stringify(payload));
+    url.searchParams.set('proveedor', proveedor || '');
+    await fetch(url.toString(), { redirect: 'follow' });
   },
 
   reset() {
