@@ -1,12 +1,13 @@
 // sw.js
-const CACHE = 'tomahoxs-v8';
+const CACHE = 'tomahoxs-v9';
 const STATIC = [
   '/', '/index.html', '/css/main.css',
   '/js/config.js', '/js/engine.js', '/js/api.js',
   '/js/router.js', '/js/app.js', '/js/auth.js',
   '/js/screens/dashboard.js', '/js/screens/scan.js',
   '/js/screens/historial.js', '/js/screens/recetas.js',
-  '/js/screens/costos.js', '/js/screens/inventario.js'
+  '/js/screens/costos.js', '/js/screens/inventario.js',
+  '/js/screens/libro.js'
 ];
 
 self.addEventListener('install', e => {
