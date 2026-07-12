@@ -23,6 +23,7 @@ const APP = {
       case 'recetas':   await RECETAS.render(); break;
       case 'costos':    await COSTOS.render(); break;
       case 'inventario': INV.render(); break;
+      case 'libro':      await LIBRO.render(); break;
     }
   },
 
