@@ -580,6 +580,16 @@
   </div>
 
   <div class="ctrl-section">
+    <div class="ctrl-section-label">Promo activa</div>
+    <div id="promo-display" style="font-size:.75rem;color:var(--amber,#f59e0b);margin-bottom:.5rem;min-height:1rem" class="promo-display-txt">Sin promo</div>
+    <input type="text" id="promo-input" style="width:100%;padding:.4rem .6rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:.8rem;margin-bottom:.4rem" placeholder="Ej: Philadelphia+papas → gaseosa gratis ($32.800)">
+    <div class="ctrl-row">
+      <button class="ctrl-btn pri" id="promo-apply">Activar promo</button>
+      <button class="ctrl-btn sec" id="promo-off">Quitar promo</button>
+    </div>
+  </div>
+
+  <div class="ctrl-section">
     <div class="ctrl-section-label">Estado del bot</div>
     <div class="ctrl-row">
       <span class="bot-status-badge open" id="bot-badge">● Abierto</span>
@@ -1125,6 +1135,12 @@ async function loadBotState() {
 }
 
 function applyBotState(d) {
+  // Promo
+  const promoEl = document.getElementById('promo-display');
+  if (promoEl) {
+    promoEl.textContent = d.promo_activa || 'Sin promo';
+    promoEl.style.color = d.promo_activa ? 'var(--amber,#f59e0b)' : 'var(--muted,#888)';
+  }
   // Descuento
   const pct = d.descuento || 0;
   const el  = document.getElementById('disc-display');
@@ -1146,6 +1162,27 @@ function applyBotState(d) {
     if (localMatchesServer) { localAgotados = new Set(newServer); render(); }
   }
 }
+
+// Promo controls
+document.getElementById('promo-apply').addEventListener('click', async () => {
+  const v = document.getElementById('promo-input').value.trim();
+  if (!v) { toast('Escribe el texto de la promo', 'err'); return; }
+  document.getElementById('promo-apply').disabled = true;
+  await adminCmd('!promo ' + v);
+  await new Promise(r => setTimeout(r, 1500));
+  await loadBotState();
+  document.getElementById('promo-apply').disabled = false;
+  document.getElementById('promo-input').value = '';
+  toast('Promo activada ✓', 'ok');
+});
+document.getElementById('promo-off').addEventListener('click', async () => {
+  document.getElementById('promo-off').disabled = true;
+  await adminCmd('!promo off');
+  await new Promise(r => setTimeout(r, 1500));
+  await loadBotState();
+  document.getElementById('promo-off').disabled = false;
+  toast('Promo quitada ✓', 'ok');
+});
 
 // Descuento controls
 document.getElementById('disc-apply').addEventListener('click', async () => {
