@@ -1078,22 +1078,14 @@ function wahaTyping(chatId, start) {
   }).catch(() => {});
 }
 
-function adminCmd(cmd) {
-  return fetch('https://primary-production-74bce.up.railway.app/webhook/waha-incoming', {
+async function adminCmd(cmd) {
+  const res = await fetch('https://primary-production-74bce.up.railway.app/webhook/admin-cmd', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      session: 'tomahoxs',
-      event: 'message',
-      payload: {
-        from: ADMIN_PHONE + '@c.us',
-        fromMe: false,
-        body: cmd,
-        type: 'chat',
-        _data: { type: 'chat', notifyName: 'Admin' }
-      }
-    })
+    body: JSON.stringify({ cmd })
   });
+  if (!res.ok) throw new Error('admin-cmd HTTP ' + res.status);
+  return res.json();
 }
 
 async function loadBotState() {
@@ -1580,8 +1572,10 @@ document.getElementById('abrir-hoy-btn').addEventListener('click', async () => {
 });
 
 document.getElementById('sellos-ver-btn').addEventListener('click', async () => {
-  await adminCmd('!sellos');
-  toast('Respuesta llegará a tu WhatsApp ✓', 'inf');
+  const data = await adminCmd('!sellos');
+  const out = document.getElementById('cmd-output');
+  if (out) { out.style.display = 'block'; out.textContent = data.respuesta || 'OK'; }
+  toast('Sellos cargados ✓', 'ok');
 });
 
 document.getElementById('sello-add-btn').addEventListener('click', async () => {
@@ -1600,8 +1594,10 @@ document.getElementById('sello-del-btn').addEventListener('click', async () => {
 });
 
 document.getElementById('pagos-btn').addEventListener('click', async () => {
-  await adminCmd('!pagos');
-  toast('Respuesta llegará a tu WhatsApp ✓', 'inf');
+  const data = await adminCmd('!pagos');
+  const out = document.getElementById('cmd-output');
+  if (out) { out.style.display = 'block'; out.textContent = data.respuesta || 'OK'; }
+  toast('Estado pagos cargado ✓', 'ok');
 });
 
 document.getElementById('confirmar-btn').addEventListener('click', async () => {
@@ -1651,9 +1647,14 @@ async function runCmd(cmd) {
   const out = document.getElementById('cmd-output');
   out.style.display = 'block';
   out.textContent = '⏳ Ejecutando: ' + cmd;
-  await adminCmd(cmd);
-  out.textContent = '✅ Enviado: ' + cmd + '\n(La respuesta llega como mensaje de WA al número admin)';
-  toast('Comando enviado ✓', 'ok');
+  try {
+    const data = await adminCmd(cmd);
+    out.textContent = '✅ ' + (data.respuesta || 'OK');
+    toast('Comando ejecutado ✓', 'ok');
+  } catch(e) {
+    out.textContent = '❌ Error: ' + e.message;
+    toast('Error ejecutando comando', 'err');
+  }
 }
 
 document.getElementById('cmd-run-btn').addEventListener('click', () => {
