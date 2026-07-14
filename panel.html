@@ -1079,12 +1079,12 @@ function wahaTyping(chatId, start) {
 }
 
 async function adminCmd(cmd) {
-  const res = await fetch('https://primary-production-74bce.up.railway.app/webhook/admin-cmd', {
+  const res = await fetch('https://primary-production-74bce.up.railway.app/webhook/bot-cmd', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cmd })
   });
-  if (!res.ok) throw new Error('admin-cmd HTTP ' + res.status);
+  if (!res.ok) throw new Error('bot-cmd HTTP ' + res.status);
   return res.json();
 }
 
