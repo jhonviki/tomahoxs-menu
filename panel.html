@@ -603,6 +603,11 @@
     <div class="ctrl-row">
       <button class="ctrl-btn sec" id="abrir-hoy-btn">⚡ Abrir hoy (forzar horario)</button>
     </div>
+    <div class="ctrl-row" style="margin-top:6px;gap:6px">
+      <input type="text" id="abrir-tarde-input" class="disc-input" placeholder="Ej: Hoy abrimos a las 7pm" style="flex:1;min-width:0">
+      <button class="ctrl-btn sec" id="abrir-tarde-btn">⏰ Abre tarde</button>
+      <button class="ctrl-btn danger" id="abrir-tarde-off-btn">✕</button>
+    </div>
   </div>
 
   <div class="ctrl-section">
@@ -1569,6 +1574,19 @@ document.getElementById('abrir-hoy-btn').addEventListener('click', async () => {
   await new Promise(r => setTimeout(r, 1200));
   await loadBotState();
   toast('⚡ Forzado abierto hoy ✓', 'ok');
+});
+
+document.getElementById('abrir-tarde-btn').addEventListener('click', async () => {
+  const msg = document.getElementById('abrir-tarde-input').value.trim();
+  if (!msg) { toast('Escribe el mensaje de apertura tardía', 'warn'); return; }
+  await adminCmd('!abrir_tarde ' + msg);
+  toast('⏰ Apertura tardía activa ✓', 'ok');
+});
+
+document.getElementById('abrir-tarde-off-btn').addEventListener('click', async () => {
+  await adminCmd('!abrir_tarde off');
+  document.getElementById('abrir-tarde-input').value = '';
+  toast('Apertura tardía desactivada ✓', 'ok');
 });
 
 document.getElementById('sellos-ver-btn').addEventListener('click', async () => {
