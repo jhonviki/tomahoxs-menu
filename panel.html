@@ -487,6 +487,17 @@
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .phoy-item:last-child { border-bottom:none; }
+
+    /* ── Config textareas ────────────────────────────────── */
+    .cfg-ta {
+      width:100%;padding:.45rem .6rem;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:6px;color:#fff;
+      font-size:.74rem;font-family:var(--fb);
+      resize:vertical;margin-bottom:.2rem;line-height:1.4;
+    }
+    .cfg-ta:focus{outline:none;border-color:var(--accent);}
   </style>
 </head>
 <body>
@@ -668,6 +679,20 @@ Escríbenos "hola" y el descuento se aplica automático al confirmar tu pedido.
 ¡Nos vemos esta noche! 🍔🔥</textarea>
     <p class="bcast-note">Copia este texto y envíalo manualmente por WhatsApp a tus contactos. El descuento ya está activo en el bot.</p>
     <button class="ctrl-btn pri" id="bcast-copy" style="margin-top:.4rem">📋 Copiar mensaje</button>
+  </div>
+
+  <div class="ctrl-section" id="cfg-section">
+    <div class="ctrl-section-label">Menu del Bot</div>
+    <div style="font-size:.73rem;color:var(--muted);margin-bottom:.6rem">Edita menu y precios sin deploy. Se aplica al instante.</div>
+    <div style="font-size:.73rem;color:var(--ghost);margin-bottom:.2rem">Menu (precios y productos)</div>
+    <textarea id="cfg-menu" class="cfg-ta" rows="8" placeholder="MENU:&#10;ENTRADAS: Bocaditos de Reina $28.900 ..."></textarea>
+    <div style="font-size:.73rem;color:var(--ghost);margin-bottom:.2rem;margin-top:.5rem">Datos del local</div>
+    <textarea id="cfg-local" class="cfg-ta" rows="4" placeholder="DATOS DEL LOCAL:&#10;Direccion: ..."></textarea>
+    <div style="font-size:.73rem;color:var(--ghost);margin-bottom:.2rem;margin-top:.5rem">Tabla de barrios (domicilio)</div>
+    <textarea id="cfg-barrios" class="cfg-ta" rows="5" placeholder="TABLA DE PRECIOS DE DOMICILIO ..."></textarea>
+    <div class="ctrl-row" style="margin-top:.6rem">
+      <button class="ctrl-btn pri" id="cfg-save-btn" style="flex:1">💾 Guardar configuracion</button>
+    </div>
   </div>
 
 </div>
@@ -1158,6 +1183,15 @@ function applyBotState(d) {
     serverAgotados = newServer;
     if (localMatchesServer) { localAgotados = new Set(newServer); render(); }
   }
+  // Config del bot
+  if (d.config) {
+    const elM = document.getElementById('cfg-menu');
+    const elL = document.getElementById('cfg-local');
+    const elB = document.getElementById('cfg-barrios');
+    if (elM && d.config.menu && !elM._dirty) elM.value = d.config.menu;
+    if (elL && d.config.local && !elL._dirty) elL.value = d.config.local;
+    if (elB && d.config.barrios && !elB._dirty) elB.value = d.config.barrios;
+  }
 }
 
 // Promo controls
@@ -1179,6 +1213,30 @@ document.getElementById('promo-off').addEventListener('click', async () => {
   await loadBotState();
   document.getElementById('promo-off').disabled = false;
   toast('Promo quitada ✓', 'ok');
+});
+
+// Config del bot
+['cfg-menu','cfg-local','cfg-barrios'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function() { el._dirty = true; });
+});
+document.getElementById('cfg-save-btn').addEventListener('click', async function() {
+  var menu = document.getElementById('cfg-menu').value.trim();
+  var local = document.getElementById('cfg-local').value.trim();
+  var barrios = document.getElementById('cfg-barrios').value.trim();
+  var btn = document.getElementById('cfg-save-btn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    await adminCmd('!config_json ' + JSON.stringify({ menu: menu, local: local, barrios: barrios }));
+    ['cfg-menu','cfg-local','cfg-barrios'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el._dirty = false;
+    });
+    toast('Configuracion guardada ✅', 'ok');
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 Guardar configuracion';
+  }
 });
 
 // Descuento controls
