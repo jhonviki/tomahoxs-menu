@@ -498,6 +498,36 @@
       resize:vertical;margin-bottom:.2rem;line-height:1.4;
     }
     .cfg-ta:focus{outline:none;border-color:var(--accent);}
+    /* ── Horario grid ────────────────────────────────── */
+    .hora-grid{width:100%;border-collapse:collapse;font-size:.8rem}
+    .hora-grid td{padding:.38rem .25rem;border-bottom:1px solid var(--border)}
+    .hora-grid td:first-child{color:var(--muted);width:68px}
+    .hora-grid input[type=time]{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:5px;color:#fff;padding:.22rem .38rem;font-size:.77rem;width:78px}
+    .hora-grid input[type=time]:disabled{opacity:.3;pointer-events:none}
+    .h-tog{position:relative;width:36px;height:20px;display:inline-block;cursor:pointer;vertical-align:middle}
+    .h-tog input{opacity:0;position:absolute;width:0;height:0}
+    .h-track{position:absolute;inset:0;border-radius:10px;background:var(--red);transition:background .2s}
+    .h-tog input:checked+.h-track{background:var(--green)}
+    .h-thumb{position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;pointer-events:none}
+    .h-tog input:checked~.h-thumb{transform:translateX(16px)}
+    /* ── Aprende ─────────────────────────────────────── */
+    .ap-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.7rem;margin-bottom:.7rem}
+    .ap-phone{font-size:.7rem;color:var(--ghost);margin-bottom:.35rem}
+    .ap-msg{font-size:.79rem;margin:.2rem 0;padding:.28rem .45rem;border-left:2px solid var(--border);border-radius:0 4px 4px 0;color:var(--muted)}
+    .ap-msg.u{border-color:var(--accent);color:var(--text)}
+    .ap-msg.b{border-color:var(--ghost)}
+    .ap-btns{display:flex;gap:.35rem;margin-top:.45rem}
+    .ap-btn{flex:1;background:none;border:1px solid var(--border);border-radius:8px;padding:.3rem;font-size:.79rem;cursor:pointer;color:var(--muted);transition:all .15s}
+    .ap-btn.good{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green)}
+    .ap-btn.bad{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
+    /* ── Clientes bot ────────────────────────────────── */
+    .cl-bot-row{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.6rem .7rem;margin-bottom:.45rem}
+    .cl-bot-name{font-size:.86rem;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+    .cl-bot-meta{font-size:.72rem;color:var(--muted);margin-top:.18rem}
+    .cl-edit-form{margin-top:.55rem;display:none;flex-direction:column;gap:.3rem}
+    .cl-edit-form.open{display:flex}
+    .cl-edit-inp{padding:.33rem .5rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:5px;color:#fff;font-size:.78rem}
+    .cl-edit-row{display:flex;gap:.35rem}
   </style>
 </head>
 <body>
@@ -513,6 +543,7 @@
     <button class="tab-btn"        data-tab="menu"      role="tab">🍔 Menú</button>
     <button class="tab-btn"        data-tab="clientes"  role="tab">👥 Clientes</button>
     <button class="tab-btn"        data-tab="control"   role="tab">⚙️ Config</button>
+    <button class="tab-btn"        data-tab="aprende"   role="tab">🧠 Aprende</button>
   </div>
 </div>
 
@@ -559,6 +590,11 @@
   <div id="cl-list">
     <div class="skel"></div><div class="skel"></div><div class="skel"></div>
   </div>
+  <div style="margin-top:1.5rem">
+    <div class="sec-label" style="margin-bottom:.6rem">Perfiles del Bot</div>
+    <div style="font-size:.73rem;color:var(--muted);margin-bottom:.7rem">Datos que el bot usa para reconocer clientes frecuentes.</div>
+    <div id="bot-perfiles"></div>
+  </div>
 </div>
 
 <!-- ── Chats Tab ── -->
@@ -579,6 +615,29 @@
 
 <!-- ── Control Tab ── -->
 <div class="tab-content" id="tab-control">
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Horario</div>
+    <table class="hora-grid" id="hora-table">
+      <tbody>
+        <tr><td>Dom</td><td><label class="h-tog"><input type="checkbox" data-dia="0" checked><div class="h-track"></div><div class="h-thumb"></div></label></td><td><input type="time" data-dia="0" data-field="abre" value="12:30"></td><td><input type="time" data-dia="0" data-field="cierra" value="22:30"></td></tr>
+        <tr><td>Lun</td><td><label class="h-tog"><input type="checkbox" data-dia="1" checked><div class="h-track"></div><div class="h-thumb"></div></label></td><td><input type="time" data-dia="1" data-field="abre" value="17:00"></td><td><input type="time" data-dia="1" data-field="cierra" value="22:00"></td></tr>
+        <tr><td>Mar</td><td><label class="h-tog"><input type="checkbox" data-dia="2" checked><div class="h-track"></div><div class="h-thumb"></div></label></td><td><input type="time" data-dia="2" data-field="abre" value="17:00"></td><td><input type="time" data-dia="2" data-field="cierra" value="22:00"></td></tr>
+        <tr><td>Mie</td><td><label class="h-tog"><input type="checkbox" data-dia="3" checked><div class="h-track"></div><div class="h-thumb"></div></label></td><td><input type="time" data-dia="3" data-field="abre" value="17:00"></td><td><input type="time" data-dia="3" data-field="cierra" value="22:00"></td></tr>
+        <tr><td>Jue</td><td><label class="h-tog"><input type="checkbox" data-dia="4" checked><div class="h-track"></div><div class="h-thumb"></div></label></td><td><input type="time" data-dia="4" data-field="abre" value="17:00"></td><td><input type="time" data-dia="4" data-field="cierra" value="22:00"></td></tr>
+        <tr><td>Vie</td><td><label class="h-tog"><input type="checkbox" data-dia="5" checked><div class="h-track"></div><div class="h-thumb"></div></label></td><td><input type="time" data-dia="5" data-field="abre" value="17:00"></td><td><input type="time" data-dia="5" data-field="cierra" value="22:30"></td></tr>
+        <tr><td>Sab</td><td><label class="h-tog"><input type="checkbox" data-dia="6" checked><div class="h-track"></div><div class="h-thumb"></div></label></td><td><input type="time" data-dia="6" data-field="abre" value="12:30"></td><td><input type="time" data-dia="6" data-field="cierra" value="22:30"></td></tr>
+      </tbody>
+    </table>
+    <button class="ctrl-btn pri" id="hora-save-btn" style="width:100%;margin-top:.55rem">💾 Guardar horario</button>
+  </div>
+
+  <div class="ctrl-section">
+    <div class="ctrl-section-label">Reglas personalizadas</div>
+    <div style="font-size:.73rem;color:var(--muted);margin-bottom:.45rem">Instrucciones extra que el bot siempre sigue. Ej: "Nunca menciones que usamos DomiChamos".</div>
+    <textarea id="cfg-reglas" class="cfg-ta" rows="4" placeholder="Ej: Si el cliente pregunta por el dueno, di que no esta disponible pero que puedes ayudarle..."></textarea>
+    <button class="ctrl-btn pri" id="reglas-save-btn" style="width:100%;margin-top:.4rem">💾 Guardar reglas</button>
+  </div>
 
   <div class="ctrl-section">
     <div class="ctrl-section-label">Descuento activo</div>
@@ -695,6 +754,19 @@ Escríbenos "hola" y el descuento se aplica automático al confirmar tu pedido.
     </div>
   </div>
 
+</div>
+
+<!-- ── Aprende Tab ── -->
+<div class="tab-content" id="tab-aprende">
+  <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+    <div class="stat-card" style="flex:1"><div class="stat-n ok" id="ap-buenas">0</div><div class="stat-l">Buenas</div></div>
+    <div class="stat-card" style="flex:1"><div class="stat-n warn" id="ap-malas">0</div><div class="stat-l">Malas</div></div>
+    <div class="stat-card" style="flex:1"><div class="stat-n neu" id="ap-total">0</div><div class="stat-l">Revisadas</div></div>
+  </div>
+  <div style="font-size:.75rem;color:var(--muted);margin-bottom:1rem">Evalua las ultimas conversaciones. El bot aprende de tu feedback.</div>
+  <div id="aprende-list">
+    <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+  </div>
 </div>
 
 <!-- ── Save bar ── -->
@@ -1213,6 +1285,171 @@ document.getElementById('promo-off').addEventListener('click', async () => {
   await loadBotState();
   document.getElementById('promo-off').disabled = false;
   toast('Promo quitada ✓', 'ok');
+});
+
+// ── Horario ──────────────────────────────────────────────────────
+function timeToDecimal(t) {
+  if (!t) return null;
+  var parts = t.split(':');
+  return parseInt(parts[0]) + parseInt(parts[1] || 0) / 60;
+}
+function decimalToTime(d) {
+  var h = Math.floor(d);
+  var m = Math.round((d - h) * 60);
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+function applyHorarioFromConfig(cfg) {
+  if (!cfg || !cfg.horarios) return;
+  var h = cfg.horarios;
+  for (var dia = 0; dia <= 6; dia++) {
+    var chk = document.querySelector('.h-tog input[data-dia="'+dia+'"]');
+    var inAbre = document.querySelector('input[data-dia="'+dia+'"][data-field="abre"]');
+    var inCierra = document.querySelector('input[data-dia="'+dia+'"][data-field="cierra"]');
+    if (!chk) continue;
+    var slot = h[dia];
+    if (!slot) {
+      chk.checked = false;
+      if (inAbre) { inAbre.disabled = true; }
+      if (inCierra) { inCierra.disabled = true; }
+    } else {
+      chk.checked = true;
+      if (inAbre) { inAbre.disabled = false; inAbre.value = decimalToTime(slot[0]); }
+      if (inCierra) { inCierra.disabled = false; inCierra.value = decimalToTime(slot[1]); }
+    }
+  }
+}
+// Toggle habilita/deshabilita los inputs de hora
+document.querySelectorAll('.h-tog input').forEach(function(chk) {
+  chk.addEventListener('change', function() {
+    var dia = this.dataset.dia;
+    var inAbre = document.querySelector('input[data-dia="'+dia+'"][data-field="abre"]');
+    var inCierra = document.querySelector('input[data-dia="'+dia+'"][data-field="cierra"]');
+    if (inAbre) inAbre.disabled = !this.checked;
+    if (inCierra) inCierra.disabled = !this.checked;
+  });
+});
+document.getElementById('hora-save-btn').addEventListener('click', async function() {
+  var horarios = {};
+  for (var dia = 0; dia <= 6; dia++) {
+    var chk = document.querySelector('.h-tog input[data-dia="'+dia+'"]');
+    if (!chk || !chk.checked) { horarios[dia] = null; continue; }
+    var abre = document.querySelector('input[data-dia="'+dia+'"][data-field="abre"]');
+    var cierra = document.querySelector('input[data-dia="'+dia+'"][data-field="cierra"]');
+    horarios[dia] = [timeToDecimal(abre && abre.value), timeToDecimal(cierra && cierra.value)];
+  }
+  var btn = this; btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    await adminCmd('!config_json ' + JSON.stringify({ horarios: horarios }));
+    toast('Horario guardado ✅', 'ok');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = '💾 Guardar horario'; }
+});
+
+// ── Reglas ───────────────────────────────────────────────────────
+document.getElementById('reglas-save-btn').addEventListener('click', async function() {
+  var reglas = document.getElementById('cfg-reglas').value.trim();
+  var btn = this; btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    await adminCmd('!config_json ' + JSON.stringify({ reglas: reglas }));
+    toast('Reglas guardadas ✅', 'ok');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = '💾 Guardar reglas'; }
+});
+
+// ── Perfiles Bot ─────────────────────────────────────────────────
+var botPerfiles = {};
+function renderBotPerfiles() {
+  var el = document.getElementById('bot-perfiles');
+  if (!el) return;
+  var keys = Object.keys(botPerfiles);
+  if (!keys.length) { el.innerHTML = '<div style="font-size:.78rem;color:var(--ghost)">Sin perfiles guardados</div>'; return; }
+  el.innerHTML = keys.slice(0, 20).map(function(phone) {
+    var c = botPerfiles[phone];
+    return '<div class="cl-bot-row" data-phone="'+phone+'">' +
+      '<div class="cl-bot-name"><span>'+(c.nombre||phone)+'</span><button class="ctrl-btn sec" style="padding:.2rem .5rem;font-size:.72rem" onclick="toggleEdit(\''+phone+'\')">✏️ Editar</button></div>' +
+      '<div class="cl-bot-meta">'+(c.barrio ? '📍 '+c.barrio : '')+(c.costoEnvio ? ' · $'+Number(c.costoEnvio).toLocaleString('es-CO') : '')+(c.pedidos ? ' · '+c.pedidos+' pedidos' : '')+'</div>' +
+      '<div class="cl-edit-form" id="edit-'+phone+'">' +
+        '<input class="cl-edit-inp" placeholder="Nombre" value="'+(c.nombre||'')+'" id="en-'+phone+'">' +
+        '<div class="cl-edit-row"><input class="cl-edit-inp" placeholder="Barrio" value="'+(c.barrio||'')+'" id="eb-'+phone+'"><input class="cl-edit-inp" placeholder="Costo envio" value="'+(c.costoEnvio||'')+'" type="number" id="ec-'+phone+'"></div>' +
+        '<input class="cl-edit-inp" placeholder="Direccion" value="'+(c.direccion||'')+'" id="ed-'+phone+'">' +
+        '<button class="ctrl-btn pri" style="margin-top:.2rem" onclick="saveCliente(\''+phone+'\')">💾 Guardar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+window.toggleEdit = function(phone) {
+  var f = document.getElementById('edit-'+phone); if (f) f.classList.toggle('open');
+};
+window.saveCliente = async function(phone) {
+  var nombre = (document.getElementById('en-'+phone)||{}).value || '';
+  var barrio = (document.getElementById('eb-'+phone)||{}).value || '';
+  var costo = (document.getElementById('ec-'+phone)||{}).value || 0;
+  var dir = (document.getElementById('ed-'+phone)||{}).value || '';
+  try {
+    await adminCmd('!update_cliente ' + JSON.stringify({ phone: phone, nombre: nombre, barrio: barrio, costoEnvio: Number(costo), direccion: dir }));
+    botPerfiles[phone] = Object.assign({}, botPerfiles[phone], { nombre: nombre, barrio: barrio, costoEnvio: Number(costo), direccion: dir });
+    renderBotPerfiles();
+    toast('Cliente guardado ✅', 'ok');
+  } catch(e) { toast('Error: '+e.message, 'err'); }
+};
+
+// ── Aprende ──────────────────────────────────────────────────────
+var apFeedback = {};
+function renderAprende(convs) {
+  var el = document.getElementById('aprende-list'); if (!el) return;
+  var recent = (convs || []).filter(function(c) { return c.history && c.history.length >= 2; }).slice(0, 20);
+  if (!recent.length) { el.innerHTML = '<div style="font-size:.78rem;color:var(--ghost);padding:1rem">Sin conversaciones para revisar</div>'; return; }
+  el.innerHTML = recent.map(function(c, i) {
+    var last2 = c.history.slice(-2);
+    var rating = apFeedback[c.phone] || '';
+    return '<div class="ap-card">' +
+      '<div class="ap-phone">📱 '+(c.phone||'')+(c.pushname ? ' · '+c.pushname : '')+'</div>' +
+      last2.map(function(m) { return '<div class="ap-msg '+(m.role==='user'?'u':'b')+'">'+(m.content||'').slice(0,120)+'</div>'; }).join('') +
+      '<div class="ap-btns">' +
+        '<button class="ap-btn'+(rating==='good'?' good':'')+'" onclick="rateConv(\''+c.phone+'\',\'good\',this)">✅ Buena</button>' +
+        '<button class="ap-btn'+(rating==='bad'?' bad':'')+'" onclick="rateConv(\''+c.phone+'\',\'bad\',this)">❌ Mala</button>' +
+      '</div></div>';
+  }).join('');
+  actualizarEstadisticas();
+}
+window.rateConv = function(phone, rating, btn) {
+  apFeedback[phone] = rating;
+  var card = btn.closest('.ap-card');
+  card.querySelectorAll('.ap-btn').forEach(function(b) { b.classList.remove('good','bad'); });
+  btn.classList.add(rating === 'good' ? 'good' : 'bad');
+  actualizarEstadisticas();
+};
+function actualizarEstadisticas() {
+  var vals = Object.values(apFeedback);
+  document.getElementById('ap-buenas').textContent = vals.filter(function(v){return v==='good';}).length;
+  document.getElementById('ap-malas').textContent = vals.filter(function(v){return v==='bad';}).length;
+  document.getElementById('ap-total').textContent = vals.length;
+}
+
+// ── Hook en applyBotState para Horario, Reglas y Perfiles ────────
+var _origApplyBotState = applyBotState;
+applyBotState = function(d) {
+  _origApplyBotState(d);
+  if (d.config) {
+    applyHorarioFromConfig(d.config);
+    var elR = document.getElementById('cfg-reglas');
+    if (elR && d.config.reglas && !elR._dirty) elR.value = d.config.reglas;
+  }
+  if (d.clientes) {
+    botPerfiles = d.clientes;
+    if (document.getElementById('bot-perfiles')) renderBotPerfiles();
+  }
+};
+document.getElementById('cfg-reglas').addEventListener('input', function() { this._dirty = true; });
+
+// ── Hook en tab switch para Aprende ──────────────────────────────
+var _origTabSwitch = null;
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (btn.dataset.tab === 'aprende') {
+      renderAprende(typeof allConvs !== 'undefined' ? allConvs : []);
+    }
+  });
 });
 
 // Config del bot
