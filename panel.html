@@ -29,47 +29,55 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--fb); }
 
-    /* ── Header ─────────────────────────────────────────── */
-    .header {
-      background: rgba(12,9,6,.96);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 1rem .6rem;
-      position: sticky; top: 0; z-index: 100;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-    .header-top {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: .75rem;
-    }
     .header-brand {
       font-family: var(--fd);
       font-size: 1.35rem; letter-spacing: .06em; color: var(--accent);
     }
     .header-brand span { color: var(--muted); font-size: .95rem; }
-    .sync-btn {
-      background: none; border: 1px solid var(--border); border-radius: 8px;
-      color: var(--muted); font-family: var(--fb); font-size: .75rem;
-      padding: .3rem .7rem; cursor: pointer; transition: all .2s;
-    }
-    .sync-btn:hover { border-color: var(--muted); color: var(--text); }
-    .sync-btn.spinning { animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Tabs ─────────────────────────────────────────── */
-    .tabs { display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: none; }
+    /* ── Sidebar layout ──────────────────────────────── */
+    body { display: flex; min-height: 100vh; }
+    .header {
+      position: fixed; left: 0; top: 0; bottom: 0;
+      width: 192px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      border-bottom: none;
+      border-right: 1px solid var(--border);
+      padding: 1.1rem 0 1rem;
+      overflow-y: auto;
+      z-index: 100;
+      background: rgba(12,9,6,.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .header-top {
+      display: flex; flex-direction: column; align-items: flex-start; gap: .5rem;
+      padding: 0 1rem .9rem; margin-bottom: .4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sync-btn { width: 100%; text-align: center; background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: var(--fb); font-size: .75rem; padding: .3rem .7rem; cursor: pointer; transition: all .2s; }
+    .sync-btn:hover { border-color: var(--muted); color: var(--text); }
+    .sync-btn.spinning { animation: spin .8s linear infinite; }
+    /* ── Sidebar nav ─────────────────────────────────── */
+    .tabs {
+      display: flex; flex-direction: column; gap: .08rem;
+      overflow-x: visible; padding: .4rem .5rem; flex: 1;
+      scrollbar-width: none;
+    }
     .tabs::-webkit-scrollbar { display: none; }
     .tab-btn {
-      flex-shrink: 0; background: none;
-      border: 1px solid var(--border); border-radius: 20px;
-      padding: .32rem .9rem; color: var(--muted);
-      font-family: var(--fb); font-size: .82rem; font-weight: 600;
-      cursor: pointer; transition: all .2s;
+      flex-shrink: 0; width: 100%; text-align: left;
+      display: flex; align-items: center; gap: .5rem;
+      background: none; border: none; border-radius: 9px;
+      padding: .6rem .85rem; color: var(--muted);
+      font-family: var(--fb); font-size: .82rem; font-weight: 500;
+      cursor: pointer; transition: background .15s, color .15s;
     }
-    .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-    /* ── Tab content ─────────────────────────────────── */
-    .tab-content { display: none; padding: 1rem; padding-bottom: 110px; }
+    .tab-btn:hover { background: rgba(255,255,255,.05); color: var(--text); }
+    .tab-btn.active { background: rgba(204,0,0,.12); color: var(--accent); font-weight: 600; }
+    /* ── Main content ────────────────────────────────── */
+    .tab-content { display: none; padding: 1.25rem; padding-bottom: 90px; margin-left: 192px; }
     .tab-content.active { display: block; }
 
     /* ── Quick stats (menu tab) ──────────────────────── */
@@ -557,6 +565,7 @@
   </div>
   <div class="tabs" role="tablist">
     <button class="tab-btn active" data-tab="conv"      role="tab">💬 Chats</button>
+    <button class="tab-btn"        data-tab="pedidos"   role="tab">📦 Pedidos</button>
     <button class="tab-btn"        data-tab="menu"      role="tab">🍔 Menú</button>
     <button class="tab-btn"        data-tab="clientes"  role="tab">👥 Clientes</button>
     <button class="tab-btn"        data-tab="control"   role="tab">⚙️ Config</button>
@@ -805,6 +814,25 @@ Escríbenos "hola" y el descuento se aplica automático al confirmar tu pedido.
       <button class="ctrl-btn pri" id="tool-save-btn" style="flex:1">💾 Guardar</button>
       <button class="ctrl-btn sec" id="tool-cancel-btn">Cancelar</button>
     </div>
+  </div>
+</div>
+
+<!-- ── Pedidos Tab ── -->
+<div class="tab-content" id="tab-pedidos">
+  <div style="display:flex;gap:.6rem;margin-bottom:1.1rem">
+    <div class="stat-card" style="flex:1"><div class="stat-n warn" id="ped-pendientes-n">—</div><div class="stat-l">Pendientes pago</div></div>
+    <div class="stat-card" style="flex:1"><div class="stat-n ok"   id="ped-hoy-n">—</div><div class="stat-l">Confirmados hoy</div></div>
+    <div class="stat-card" style="flex:1"><div class="stat-n neu"  id="ped-total-n">—</div><div class="stat-l">Total pedidos</div></div>
+  </div>
+
+  <div class="sec-label" style="margin-bottom:.6rem">En espera de confirmación</div>
+  <div id="ped-pending-list">
+    <div class="skel"></div><div class="skel"></div>
+  </div>
+
+  <div class="sec-label" style="margin:.9rem 0 .6rem">Conversaciones con pedido activo</div>
+  <div id="ped-activos-list">
+    <div class="skel"></div><div class="skel"></div>
   </div>
 </div>
 
@@ -1465,7 +1493,7 @@ function actualizarEstadisticas() {
   document.getElementById('ap-total').textContent = vals.length;
 }
 
-// ── Hook en applyBotState para Horario, Reglas, Perfiles y Tools ─
+// ── Hook en applyBotState ─────────────────────────────────────────
 var _origApplyBotState = applyBotState;
 applyBotState = function(d) {
   _origApplyBotState(d);
@@ -1481,8 +1509,100 @@ applyBotState = function(d) {
     botPerfiles = d.clientes;
     if (document.getElementById('bot-perfiles')) renderBotPerfiles();
   }
+  // Pedidos: siempre actualizar si el tab está activo
+  if (document.getElementById('tab-pedidos') && document.getElementById('tab-pedidos').classList.contains('active')) {
+    renderPedidos(d);
+  }
+  // Guardar referencia global para tab switch
+  window._lastBotState = d;
 };
+
+// Tab switch: cargar datos al cambiar de tab
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var tab = btn.dataset.tab;
+    if (tab === 'pedidos' && window._lastBotState) renderPedidos(window._lastBotState);
+    if (tab === 'aprende') renderAprende(typeof allConvs !== 'undefined' ? allConvs : []);
+    if (tab === 'tools') {
+      var catalog = _toolsCatalog.length > 0 ? _toolsCatalog : PANEL_DEFAULT_TOOLS;
+      renderToolsGrid(catalog);
+    }
+  });
+});
+
 document.getElementById('cfg-reglas').addEventListener('input', function() { this._dirty = true; });
+
+// ── Pedidos ───────────────────────────────────────────────────────
+function renderPedidos(data) {
+  var pending = data.pedidosPendientes || {};
+  var convs   = data.conversations || {};
+
+  // Stats
+  var nPend = Object.keys(pending).length;
+  document.getElementById('ped-pendientes-n').textContent = nPend;
+
+  // Pagos confirmados hoy
+  var pagosHoy = (data.pagosConfirmados || []).filter(function(p) {
+    return p.fecha && p.fecha.startsWith(new Date().toLocaleDateString('sv'));
+  }).length;
+  document.getElementById('ped-hoy-n').textContent = pagosHoy;
+  document.getElementById('ped-total-n').textContent = (data.pagosConfirmados || []).length;
+
+  // Pendientes de pago
+  var listEl = document.getElementById('ped-pending-list');
+  if (nPend === 0) {
+    listEl.innerHTML = '<div style="font-size:.78rem;color:var(--ghost);padding:.5rem 0">Sin pedidos pendientes de confirmacion</div>';
+  } else {
+    listEl.innerHTML = Object.entries(pending).map(function(entry) {
+      var phone = entry[0], p = entry[1];
+      var items = Array.isArray(p.items) ? p.items.map(function(i) { return i.nombre || i; }).join(', ') : '';
+      var total = p.total ? '$' + Number(p.total).toLocaleString('es-CO') : '';
+      return '<div class="cl-bot-row" style="margin-bottom:.45rem">' +
+        '<div class="cl-bot-name"><span>' + (p.nombre || phone) + '</span><span style="font-size:.78rem;color:var(--green)">' + total + '</span></div>' +
+        '<div class="cl-bot-meta">' + (p.pago || '') + (items ? ' · ' + items.slice(0,60) : '') + '</div>' +
+        '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
+          '<button class="ctrl-btn pri" style="flex:1;font-size:.75rem" onclick="confirmarPedido(\'' + phone + '\')">✅ Confirmar</button>' +
+          '<button class="ctrl-btn sec" style="flex:1;font-size:.75rem" onclick="rechazarPedido(\'' + phone + '\')">❌ Rechazar</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Conversaciones con pedido en curso (historial reciente con items)
+  var activosEl = document.getElementById('ped-activos-list');
+  var activos = Object.entries(convs).filter(function(e) {
+    return e[1].pedidoEnCurso || (e[1].history && e[1].history.some(function(m) {
+      return m.role === 'user' && m.content && m.content.match(/quiero|pido|dame|una |un /i);
+    }));
+  }).slice(0, 8);
+  if (!activos.length) {
+    activosEl.innerHTML = '<div style="font-size:.78rem;color:var(--ghost);padding:.5rem 0">Sin conversaciones activas</div>';
+  } else {
+    activosEl.innerHTML = activos.map(function(e) {
+      var ph = e[0], cv = e[1];
+      var last = cv.history && cv.history.length ? cv.history[cv.history.length - 1] : null;
+      return '<div class="cl-bot-row">' +
+        '<div class="cl-bot-name"><span>' + (cv.pushname || ph) + '</span><span style="font-size:.7rem;color:var(--muted)">' + ph + '</span></div>' +
+        (last ? '<div class="cl-bot-meta">' + (last.content || '').slice(0, 80) + '</div>' : '') +
+      '</div>';
+    }).join('');
+  }
+}
+
+window.confirmarPedido = async function(phone) {
+  try {
+    await adminCmd('!confirmar ' + phone);
+    toast('Pedido confirmado ✅', 'ok');
+    setTimeout(function() { loadBotState(); }, 1000);
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+};
+window.rechazarPedido = async function(phone) {
+  try {
+    await adminCmd('!rechazar ' + phone);
+    toast('Pedido rechazado', 'ok');
+    setTimeout(function() { loadBotState(); }, 1000);
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+};
 
 // ── Tool catalog ─────────────────────────────────────────────────
 var PANEL_DEFAULT_TOOLS = [
@@ -1556,19 +1676,6 @@ document.getElementById('tool-cancel-btn').addEventListener('click', function() 
 });
 document.getElementById('tool-modal').addEventListener('click', function(e) {
   if (e.target === this) this.style.display = 'none';
-});
-
-// ── Hook en tab switch para Aprende y Tools ───────────────────────
-document.querySelectorAll('.tab-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    if (btn.dataset.tab === 'aprende') {
-      renderAprende(typeof allConvs !== 'undefined' ? allConvs : []);
-    }
-    if (btn.dataset.tab === 'tools') {
-      var catalog = _toolsCatalog.length > 0 ? _toolsCatalog : PANEL_DEFAULT_TOOLS;
-      renderToolsGrid(catalog);
-    }
-  });
 });
 
 // Config del bot
