@@ -528,6 +528,23 @@
     .cl-edit-form.open{display:flex}
     .cl-edit-inp{padding:.33rem .5rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:5px;color:#fff;font-size:.78rem}
     .cl-edit-row{display:flex;gap:.35rem}
+    /* ── Tool cards ──────────────────────────────────── */
+    .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem}
+    .tool-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem;display:flex;flex-direction:column;gap:.45rem}
+    .tool-card-hdr{display:flex;justify-content:space-between;align-items:center}
+    .tool-icon{font-size:1.4rem}
+    .tool-name{font-size:.82rem;font-weight:600}
+    .tool-edit-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:.24rem .5rem;font-size:.72rem;color:var(--muted);cursor:pointer;margin-top:auto;transition:border-color .15s,color .15s}
+    .tool-edit-btn:hover{border-color:var(--accent);color:var(--accent)}
+    /* ── Tool modal ──────────────────────────────────── */
+    .tool-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center}
+    .tool-modal-box{background:#1a1f2e;border:1px solid var(--border);border-radius:14px;padding:1.25rem;width:min(520px,93vw);max-height:82vh;display:flex;flex-direction:column;gap:.7rem;overflow:hidden}
+    .tool-modal-title{font-size:.98rem;font-weight:600}
+    .tool-modal-vars{font-size:.7rem;color:var(--muted)}
+    .tool-modal-vars code{background:rgba(255,255,255,.08);border-radius:4px;padding:.1rem .3rem;margin:.1rem;display:inline-block;font-size:.68rem}
+    .tool-prompt-ta{flex:1;min-height:200px;padding:.6rem;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:.8rem;font-family:monospace;resize:vertical}
+    .tool-prompt-ta:focus{outline:none;border-color:var(--accent)}
+    .tool-modal-actions{display:flex;gap:.5rem}
   </style>
 </head>
 <body>
@@ -544,6 +561,7 @@
     <button class="tab-btn"        data-tab="clientes"  role="tab">👥 Clientes</button>
     <button class="tab-btn"        data-tab="control"   role="tab">⚙️ Config</button>
     <button class="tab-btn"        data-tab="aprende"   role="tab">🧠 Aprende</button>
+    <button class="tab-btn"        data-tab="tools"     role="tab">🧰 Tools</button>
   </div>
 </div>
 
@@ -766,6 +784,27 @@ Escríbenos "hola" y el descuento se aplica automático al confirmar tu pedido.
   <div style="font-size:.75rem;color:var(--muted);margin-bottom:1rem">Evalua las ultimas conversaciones. El bot aprende de tu feedback.</div>
   <div id="aprende-list">
     <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+  </div>
+</div>
+
+<!-- ── Tools Tab ── -->
+<div class="tab-content" id="tab-tools">
+  <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem">Personaliza el comportamiento del bot. Cada tool es un bloque de instrucciones que Gemini siempre sigue.</div>
+  <div class="tool-grid" id="tools-grid">
+    <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+  </div>
+</div>
+
+<!-- Tool editor modal -->
+<div id="tool-modal" style="display:none" class="tool-overlay">
+  <div class="tool-modal-box">
+    <div class="tool-modal-title" id="tool-modal-title">Editando tool</div>
+    <div class="tool-modal-vars">Variables: <code>{{menu}}</code><code>{{barrios}}</code><code>{{local}}</code><code>{{horario_descripcion}}</code><code>{{dia_semana}}</code><code>{{estado_horario}}</code><code>{{hora_actual}}</code><code>{{nombre_cliente}}</code><code>{{cliente_info}}</code><code>{{promo_texto}}</code><code>{{pedido_activo}}</code></div>
+    <textarea class="tool-prompt-ta" id="tool-prompt-ta" rows="10"></textarea>
+    <div class="tool-modal-actions">
+      <button class="ctrl-btn pri" id="tool-save-btn" style="flex:1">💾 Guardar</button>
+      <button class="ctrl-btn sec" id="tool-cancel-btn">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -1426,7 +1465,7 @@ function actualizarEstadisticas() {
   document.getElementById('ap-total').textContent = vals.length;
 }
 
-// ── Hook en applyBotState para Horario, Reglas y Perfiles ────────
+// ── Hook en applyBotState para Horario, Reglas, Perfiles y Tools ─
 var _origApplyBotState = applyBotState;
 applyBotState = function(d) {
   _origApplyBotState(d);
@@ -1434,6 +1473,9 @@ applyBotState = function(d) {
     applyHorarioFromConfig(d.config);
     var elR = document.getElementById('cfg-reglas');
     if (elR && d.config.reglas && !elR._dirty) elR.value = d.config.reglas;
+    if (Array.isArray(d.config.tools) && d.config.tools.length > 0) {
+      _toolsCatalog = d.config.tools;
+    }
   }
   if (d.clientes) {
     botPerfiles = d.clientes;
@@ -1442,12 +1484,89 @@ applyBotState = function(d) {
 };
 document.getElementById('cfg-reglas').addEventListener('input', function() { this._dirty = true; });
 
-// ── Hook en tab switch para Aprende ──────────────────────────────
-var _origTabSwitch = null;
+// ── Tool catalog ─────────────────────────────────────────────────
+var PANEL_DEFAULT_TOOLS = [
+  { id: 'identidad', name: 'Identidad y tono', icon: '🤖', enabled: true, vars: ['nombre_cliente'],
+    prompt: 'Eres Jhon, asistente de ventas de Tomahoxs Grill y Ahumados (hamburguesas ahumadas en Belen, Medellin). Atiende con calidez, sin ser robotico. Tu meta es que el cliente pida o visite el local.' },
+  { id: 'menu', name: 'Carta y precios', icon: '📋', enabled: true, vars: ['menu'],
+    prompt: 'El menu actual es:\n\n{{menu}}\n\nREGLA CRITICA: cita siempre el precio exacto. Nunca inventes precios.' },
+  { id: 'horario', name: 'Horario', icon: '🕐', enabled: true, vars: ['horario_descripcion', 'dia_semana', 'estado_horario'],
+    prompt: 'Horario: {{horario_descripcion}}. Hoy {{dia_semana}} estamos {{estado_horario}}.' },
+  { id: 'pedidos', name: 'Toma de pedidos', icon: '📦', enabled: true, vars: ['barrios'],
+    prompt: 'Para tomar pedidos: 1) Pregunta que quiere 2) Confirma nombre completo 3) Domicilio o recoger 4) Metodo de pago (transferencia/efectivo/datafono).\n\n{{barrios}}' },
+  { id: 'clientes', name: 'Clientes recurrentes', icon: '👤', enabled: true, vars: ['cliente_info'],
+    prompt: '{{cliente_info}}' },
+  { id: 'promos', name: 'Promociones', icon: '🎁', enabled: false, vars: ['promo_texto'],
+    prompt: 'Promo activa: {{promo_texto}}' }
+];
+var _toolsCatalog = [];
+var _currentToolId = null;
+
+function renderToolsGrid(tools) {
+  var grid = document.getElementById('tools-grid');
+  if (!grid) return;
+  _toolsCatalog = tools;
+  grid.innerHTML = tools.map(function(t) {
+    return '<div class="tool-card">' +
+      '<div class="tool-card-hdr"><span class="tool-icon">' + (t.icon || '🔧') + '</span>' +
+      '<label class="h-tog"><input type="checkbox" class="tool-toggle" data-id="' + t.id + '"' + (t.enabled ? ' checked' : '') + '><div class="h-track"></div><div class="h-thumb"></div></label></div>' +
+      '<div class="tool-name">' + (t.name || t.id) + '</div>' +
+      '<button class="tool-edit-btn" data-id="' + t.id + '">✏️ Editar prompt</button>' +
+    '</div>';
+  }).join('');
+  grid.querySelectorAll('.tool-toggle').forEach(function(chk) {
+    chk.addEventListener('change', async function() {
+      var id = this.dataset.id;
+      var enabled = this.checked;
+      try {
+        await adminCmd('!tool_update ' + JSON.stringify({ id: id, enabled: enabled }));
+        var t = _toolsCatalog.find(function(x) { return x.id === id; });
+        if (t) t.enabled = enabled;
+        toast((enabled ? 'Activada' : 'Desactivada') + ': ' + id, 'ok');
+      } catch(e) { toast('Error: ' + e.message, 'err'); }
+    });
+  });
+  grid.querySelectorAll('.tool-edit-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.dataset.id;
+      var t = _toolsCatalog.find(function(x) { return x.id === id; });
+      if (!t) return;
+      _currentToolId = id;
+      document.getElementById('tool-modal-title').textContent = (t.icon || '') + ' ' + (t.name || id);
+      document.getElementById('tool-prompt-ta').value = t.prompt || '';
+      document.getElementById('tool-modal').style.display = 'flex';
+    });
+  });
+}
+document.getElementById('tool-save-btn').addEventListener('click', async function() {
+  if (!_currentToolId) return;
+  var prompt = document.getElementById('tool-prompt-ta').value;
+  var btn = this; btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    await adminCmd('!tool_update ' + JSON.stringify({ id: _currentToolId, prompt: prompt }));
+    var t = _toolsCatalog.find(function(x) { return x.id === _currentToolId; });
+    if (t) t.prompt = prompt;
+    document.getElementById('tool-modal').style.display = 'none';
+    toast('Tool guardada', 'ok');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = '💾 Guardar'; }
+});
+document.getElementById('tool-cancel-btn').addEventListener('click', function() {
+  document.getElementById('tool-modal').style.display = 'none';
+});
+document.getElementById('tool-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+// ── Hook en tab switch para Aprende y Tools ───────────────────────
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     if (btn.dataset.tab === 'aprende') {
       renderAprende(typeof allConvs !== 'undefined' ? allConvs : []);
+    }
+    if (btn.dataset.tab === 'tools') {
+      var catalog = _toolsCatalog.length > 0 ? _toolsCatalog : PANEL_DEFAULT_TOOLS;
+      renderToolsGrid(catalog);
     }
   });
 });
