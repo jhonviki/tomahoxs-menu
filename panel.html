@@ -536,13 +536,14 @@
     .cl-edit-form.open{display:flex}
     .cl-edit-inp{padding:.33rem .5rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:5px;color:#fff;font-size:.78rem}
     .cl-edit-row{display:flex;gap:.35rem}
-    /* ── Tool cards ──────────────────────────────────── */
-    .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem}
-    .tool-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem;display:flex;flex-direction:column;gap:.45rem}
-    .tool-card-hdr{display:flex;justify-content:space-between;align-items:center}
-    .tool-icon{font-size:1.4rem}
-    .tool-name{font-size:.82rem;font-weight:600}
-    .tool-edit-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:.24rem .5rem;font-size:.72rem;color:var(--muted);cursor:pointer;margin-top:auto;transition:border-color .15s,color .15s}
+    /* ── Tool list ───────────────────────────────────── */
+    .tool-grid{display:flex;flex-direction:column;gap:.4rem}
+    .tool-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.65rem 1rem;display:flex;align-items:center;gap:.75rem;transition:border-color .15s}
+    .tool-card:hover{border-color:rgba(255,245,230,.18)}
+    .tool-card-hdr{display:none}
+    .tool-icon{font-size:1.15rem;flex-shrink:0;width:24px;text-align:center}
+    .tool-name{flex:1;font-size:.84rem;font-weight:600}
+    .tool-edit-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:.24rem .65rem;font-size:.75rem;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s;flex-shrink:0}
     .tool-edit-btn:hover{border-color:var(--accent);color:var(--accent)}
     /* ── Tool modal ──────────────────────────────────── */
     .tool-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center}
@@ -1628,10 +1629,10 @@ function renderToolsGrid(tools) {
   _toolsCatalog = tools;
   grid.innerHTML = tools.map(function(t) {
     return '<div class="tool-card">' +
-      '<div class="tool-card-hdr"><span class="tool-icon">' + (t.icon || '🔧') + '</span>' +
-      '<label class="h-tog"><input type="checkbox" class="tool-toggle" data-id="' + t.id + '"' + (t.enabled ? ' checked' : '') + '><div class="h-track"></div><div class="h-thumb"></div></label></div>' +
-      '<div class="tool-name">' + (t.name || t.id) + '</div>' +
-      '<button class="tool-edit-btn" data-id="' + t.id + '">✏️ Editar prompt</button>' +
+      '<span class="tool-icon">' + (t.icon || '🔧') + '</span>' +
+      '<span class="tool-name">' + (t.name || t.id) + '</span>' +
+      '<label class="h-tog"><input type="checkbox" class="tool-toggle" data-id="' + t.id + '"' + (t.enabled ? ' checked' : '') + '><div class="h-track"></div><div class="h-thumb"></div></label>' +
+      '<button class="tool-edit-btn" data-id="' + t.id + '">✏️ Editar</button>' +
     '</div>';
   }).join('');
   grid.querySelectorAll('.tool-toggle').forEach(function(chk) {
