@@ -554,6 +554,8 @@
     .tool-prompt-ta{flex:1;min-height:200px;padding:.6rem;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:.8rem;font-family:monospace;resize:vertical}
     .tool-prompt-ta:focus{outline:none;border-color:var(--accent)}
     .tool-modal-actions{display:flex;gap:.5rem}
+    .sidebar-sep{height:1px;background:var(--border);margin:.6rem .65rem}
+    .sidebar-label{font-size:.62rem;font-weight:700;color:var(--ghost);padding:.3rem .9rem .15rem;letter-spacing:.1em;text-transform:uppercase}
   </style>
 </head>
 <body>
@@ -571,7 +573,9 @@
     <button class="tab-btn"        data-tab="clientes"  role="tab">👥 Clientes</button>
     <button class="tab-btn"        data-tab="control"   role="tab">⚙️ Config</button>
     <button class="tab-btn"        data-tab="aprende"   role="tab">🧠 Aprende</button>
-    <button class="tab-btn"        data-tab="tools"     role="tab">🧰 Tools</button>
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-label">HERRAMIENTAS</div>
+    <div id="sidebar-tools-nav"></div>
   </div>
 </div>
 
@@ -816,6 +820,20 @@ Escríbenos "hola" y el descuento se aplica automático al confirmar tu pedido.
       <button class="ctrl-btn sec" id="tool-cancel-btn">Cancelar</button>
     </div>
   </div>
+</div>
+
+<!-- ── Tool Editor Tab ── -->
+<div class="tab-content" id="tab-tool-editor">
+  <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.1rem">
+    <span id="te-icon" style="font-size:1.5rem">🔧</span>
+    <div style="flex:1">
+      <div id="te-name" style="font-size:1rem;font-weight:600"></div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:.25rem">Variables disponibles: <code style="background:rgba(255,255,255,.08);border-radius:3px;padding:.05rem .3rem">{{menu}}</code> <code style="background:rgba(255,255,255,.08);border-radius:3px;padding:.05rem .3rem">{{barrios}}</code> <code style="background:rgba(255,255,255,.08);border-radius:3px;padding:.05rem .3rem">{{nombre_cliente}}</code> <code style="background:rgba(255,255,255,.08);border-radius:3px;padding:.05rem .3rem">{{horario_descripcion}}</code> <code style="background:rgba(255,255,255,.08);border-radius:3px;padding:.05rem .3rem">{{promo_texto}}</code></div>
+    </div>
+    <label class="h-tog"><input type="checkbox" id="te-toggle"><div class="h-track"></div><div class="h-thumb"></div></label>
+  </div>
+  <textarea class="tool-prompt-ta" id="te-ta" rows="16" style="width:100%;min-height:280px"></textarea>
+  <button class="ctrl-btn pri" id="te-save-btn" style="width:100%;margin-top:.75rem">💾 Guardar</button>
 </div>
 
 <!-- ── Pedidos Tab ── -->
@@ -1504,6 +1522,7 @@ applyBotState = function(d) {
     if (elR && d.config.reglas && !elR._dirty) elR.value = d.config.reglas;
     if (Array.isArray(d.config.tools) && d.config.tools.length > 0) {
       _toolsCatalog = d.config.tools;
+      renderSidebarTools(d.config.tools);
     }
   }
   if (d.clientes) {
@@ -1524,12 +1543,11 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
     var tab = btn.dataset.tab;
     if (tab === 'pedidos' && window._lastBotState) renderPedidos(window._lastBotState);
     if (tab === 'aprende') renderAprende(typeof allConvs !== 'undefined' ? allConvs : []);
-    if (tab === 'tools') {
-      var catalog = _toolsCatalog.length > 0 ? _toolsCatalog : PANEL_DEFAULT_TOOLS;
-      renderToolsGrid(catalog);
-    }
   });
 });
+
+// Render inicial del sidebar de tools (con defaults)
+renderSidebarTools(PANEL_DEFAULT_TOOLS);
 
 document.getElementById('cfg-reglas').addEventListener('input', function() { this._dirty = true; });
 
@@ -1604,6 +1622,63 @@ window.rechazarPedido = async function(phone) {
     setTimeout(function() { loadBotState(); }, 1000);
   } catch(e) { toast('Error: ' + e.message, 'err'); }
 };
+
+// ── Sidebar tools nav ─────────────────────────────────────────────
+function renderSidebarTools(tools) {
+  var nav = document.getElementById('sidebar-tools-nav');
+  if (!nav) return;
+  var list = (tools && tools.length) ? tools : PANEL_DEFAULT_TOOLS;
+  nav.innerHTML = list.map(function(t) {
+    return '<button class="tab-btn" data-tab="tool-editor" data-tool-id="' + t.id + '">' +
+      (t.icon || '') + ' ' + (t.name || t.id) +
+      (t.enabled === false ? ' <span style="opacity:.4;font-size:.7rem">(off)</span>' : '') +
+    '</button>';
+  }).join('');
+  nav.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.dataset.toolId;
+      var catalog = _toolsCatalog.length > 0 ? _toolsCatalog : PANEL_DEFAULT_TOOLS;
+      var t = catalog.find(function(x) { return x.id === id; });
+      if (!t) return;
+      _currentToolId = id;
+      document.getElementById('te-icon').textContent = t.icon || '🔧';
+      document.getElementById('te-name').textContent = t.name || id;
+      document.getElementById('te-ta').value = t.prompt || '';
+      document.getElementById('te-toggle').checked = t.enabled !== false;
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById('tab-tool-editor').classList.add('active');
+      this.classList.add('active');
+    });
+  });
+}
+
+document.getElementById('te-save-btn').addEventListener('click', async function() {
+  if (!_currentToolId) return;
+  var prompt = document.getElementById('te-ta').value;
+  var enabled = document.getElementById('te-toggle').checked;
+  var btn = this; btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    await adminCmd('!tool_update ' + JSON.stringify({ id: _currentToolId, prompt: prompt, enabled: enabled }));
+    var t = _toolsCatalog.find(function(x) { return x.id === _currentToolId; });
+    if (t) { t.prompt = prompt; t.enabled = enabled; }
+    renderSidebarTools(_toolsCatalog.length > 0 ? _toolsCatalog : PANEL_DEFAULT_TOOLS);
+    toast('Tool guardada', 'ok');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  finally { btn.disabled = false; btn.textContent = '💾 Guardar'; }
+});
+
+document.getElementById('te-toggle').addEventListener('change', async function() {
+  if (!_currentToolId) return;
+  var enabled = this.checked;
+  try {
+    await adminCmd('!tool_update ' + JSON.stringify({ id: _currentToolId, enabled: enabled }));
+    var t = _toolsCatalog.find(function(x) { return x.id === _currentToolId; });
+    if (t) t.enabled = enabled;
+    renderSidebarTools(_toolsCatalog.length > 0 ? _toolsCatalog : PANEL_DEFAULT_TOOLS);
+    toast(enabled ? 'Activada' : 'Desactivada', 'ok');
+  } catch(e) { toast('Error: ' + e.message, 'err'); this.checked = !enabled; }
+});
 
 // ── Tool catalog ─────────────────────────────────────────────────
 var PANEL_DEFAULT_TOOLS = [
