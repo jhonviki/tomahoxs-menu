@@ -1546,8 +1546,7 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
   });
 });
 
-// Render inicial del sidebar de tools (con defaults)
-renderSidebarTools(PANEL_DEFAULT_TOOLS);
+// ponytail: movido a después de PANEL_DEFAULT_TOOLS en línea ~1700
 
 document.getElementById('cfg-reglas').addEventListener('input', function() { this._dirty = true; });
 
@@ -1697,6 +1696,9 @@ var PANEL_DEFAULT_TOOLS = [
 ];
 var _toolsCatalog = [];
 var _currentToolId = null;
+
+// Render inicial del sidebar de tools (aquí PANEL_DEFAULT_TOOLS ya existe)
+renderSidebarTools(PANEL_DEFAULT_TOOLS);
 
 function renderToolsGrid(tools) {
   var grid = document.getElementById('tools-grid');
