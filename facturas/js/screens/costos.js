@@ -244,7 +244,7 @@ const COSTOS = {
         });
         const key = await API._getGeminiKey();
         const prompt = 'Reporte de ventas Loggro. Extrae los métodos de pago y sus totales. Devuelve SOLO un JSON array: [{"metodo":"Efectivo","total":1234567},{"metodo":"Transferencia","total":890000}]. Sin texto adicional.';
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: file.type, data: base64 } }] }] })
         });
